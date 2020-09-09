@@ -1,38 +1,77 @@
 [![Community Project header](https://github.com/newrelic/opensource-website/raw/master/src/images/categories/Community_Project.png)](https://opensource.newrelic.com/oss-category/#community-project)
 
-# [Name of Project] [build badges go here when available]
+# New Relic Ruby Telemetry SDK
+The New Relic Ruby Telemetry SDK is an easy way to send data to New Relic. The SDK currently supports sending span/trace data via New Relic's [Trace API](https://docs.newrelic.com/docs/understand-dependencies/distributed-tracing/trace-api/introduction-trace-api).
 
->[Brief description - what is the project and value does it provide? How often should users expect to get releases? How is versioning set up? Where does this project want to go?]
+Why is this cool?
+
+Send data to New Relic! No agent required.
+
+Our [Telemetry SDK](https://docs.newrelic.com/docs/data-ingest-apis/get-data-new-relic/new-relic-sdks/telemetry-sdks-send-custom-telemetry-data-new-relic) makes it easier for you to send your telemetry data to New Relic. We've covered all of the basics for you so you can focus on writing feature code directly related to your business need or interest.
 
 ## Installation
 
-> [Include a step-by-step procedure on how to get your code installed. Be sure to include any third-party dependencies that need to be installed separately]
+### With Bundler
+
+For using with Bundler, add the New Relic Telemetry SDK gem to your project's Gemfile.
+
+```ruby
+gem 'newrelic-telemetry_sdk'
+```
+
+and run `bundle install` to activate the new gem.
+
+### Without Bundler
+
+If you are not using Bundler, install the gem with:
+
+```bash
+gem install newrelic-telemetry_sdk
+```
+
+and then require the New Relic Ruby Telemetry SDK in your Ruby start-up sequence:
+
+```ruby
+require 'newrelic-telemetry_sdk'
+```
 
 ## Getting Started
->[Simple steps to start working with the software similar to a "Hello World"]
 
-## Usage
->[**Optional** - Include more thorough instructions on how to use the software. This section might not be needed if the Getting Started section is enough. Remove this section if it's not needed.]
-
-
-## Building
-
->[**Optional** - Include this section if users will need to follow specific instructions to build the software from source. Be sure to include any third party build dependencies that need to be installed separately. Remove this section if it's not needed.]
+### Sending your first span
 
 ## Testing
 
->[**Optional** - Include instructions on how to run tests if we include tests with the codebase. Remove this section if it's not needed.]
+Running the test suite is simple.  Just invoke:
+
+    bundle
+    bundle exec rake
 
 ## Support
 
 New Relic hosts and moderates an online forum where customers can interact with New Relic employees as well as other customers to get help and share best practices. Like all official New Relic open source projects, there's a related Community topic in the New Relic Explorers Hub. You can find this project's topic/threads here:
 
->Add the url for the support thread here
+https://discuss.newrelic.com/t/new-relic-telemetry-sdk-for-ruby/114266
 
 ## Contributing
-We encourage your contributions to improve [project name]! Keep in mind when you submit your pull request, you'll need to sign the CLA via the click-through using CLA-Assistant. You only have to sign the CLA one time per project.
+We encourage your contributions to improve newrelic-telemetry-sdk-ruby! Keep in mind when you submit your pull request, you'll need to sign the CLA via the click-through using CLA-Assistant. You only have to sign the CLA one time per project.
 If you have any questions, or to execute our corporate CLA, required if your contribution is on behalf of a company,  please drop us an email at opensource@newrelic.com.
 
 ## License
-[Project Name] is licensed under the [Apache 2.0](http://apache.org/licenses/LICENSE-2.0.txt) License.
->[If applicable: The [project name] also uses source code from third-party libraries. You can find full details on which libraries are used and the terms under which they are licensed in the third-party notices document.]
+newrelic-telemetry-sdk-ruby is licensed under the [Apache 2.0](http://apache.org/licenses/LICENSE-2.0.txt) License.
+
+## Find and use data
+
+Tips on how to find and query your data in New Relic:
+
+* `Find metric data <https://docs.newrelic.com/docs/data-ingest-apis/get-data-new-relic/metric-api/introduction-metric-api#find-data>`_
+* `Find event data <https://docs.newrelic.com/docs/insights/insights-data-sources/custom-data/introduction-event-api#find-data>`_
+* `Find trace/span data <https://docs.newrelic.com/docs/understand-dependencies/distributed-tracing/trace-api/introduction-trace-api#view-data>`_
+
+For general querying information, see:
+
+* `Query New Relic data <https://docs.newrelic.com/docs/using-new-relic/data/understand-data/query-new-relic-data>`_
+* `Intro to NRQL <https://docs.newrelic.com/docs/query-data/nrql-new-relic-query-language/getting-started/introduction-nrql>`_
+
+## Limitations
+
+The New Relic Telemetry APIs are rate limited. Please reference the documentation for `New Relic Metrics API <https://docs.newrelic.com/docs/introduction-new-relic-metric-api>`_ and `New Relic Trace API requirements and limits <https://docs.newrelic.com/docs/apm/distributed-tracing/trace-api/trace-api-general-requirements-limits>`_ on the specifics of the rate limits.
