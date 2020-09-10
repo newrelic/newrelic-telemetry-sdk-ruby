@@ -1,0 +1,16 @@
+Gemfile.lock
+Guard*
+.DS\_Store
+*~
+*.rbc
+pkg/
+*.gem
+tmp/
+TAGS
+tags
+/doc/
+/log/
+.pryrc
+.bundle
+.yardoc
+/coverage/
