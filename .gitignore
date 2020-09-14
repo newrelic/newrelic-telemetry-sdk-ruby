@@ -1,10 +1,13 @@
 Gemfile.lock
 Guard*
 .DS\_Store
+
 *~
 *.rbc
 pkg/
 *.gem
+
+
 tmp/
 TAGS
 tags
@@ -14,3 +17,13 @@ tags
 .bundle
 .yardoc
 /coverage/
+!rails
+Manifest*
+.idea/
+*.swp
+*.swo
+gems/
+.tm_properties
+artifacts/
+yarn.lock
+
