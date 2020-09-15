@@ -25,7 +25,7 @@ module Newrelic
           service_name: service_name
         }
 
-        custom_attributes.each { |k, v| @attributes[k] = v } if custom_attributes
+        @attributes.merge!(custom_attributes) if custom_attributes
 
         @contents = {
           id: id,

@@ -59,9 +59,10 @@ module Newrelic
       end
 
       def test_custom_attributes
-        custom_attributes = { :'user.email' => "me@newr.com",
-                              :something  => "somethingelse"
-                            }
+        custom_attributes = {
+          :'user.email' => "me@newr.com",
+          :something  => "somethingelse"
+        }
 
         span = Span.new("Name", custom_attributes: custom_attributes)
 
