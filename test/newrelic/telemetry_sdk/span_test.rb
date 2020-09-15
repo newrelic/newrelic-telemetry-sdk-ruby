@@ -51,7 +51,7 @@ module Newrelic
         assert_equal custom_attributes, span.custom_attributes
       end
 
-      def test_finish
+      def test_finish_with_end_time_supplied
         span = Util.stub :time_to_ms, 0 do
           start_time_ms = Util.time_to_ms
           Span.new "Name", timestamp_ms: start_time_ms
@@ -63,6 +63,19 @@ module Newrelic
         end
 
         assert_equal 1000, span.duration_ms
+      end
+
+      def test_finish_without_end_time_supplied
+        span = Util.stub :time_to_ms, 0 do
+          start_time_ms = Util.time_to_ms
+          Span.new "Name", timestamp_ms: start_time_ms
+        end
+
+        Util.stub :time_to_ms, 500 do
+          span.finish
+        end
+
+        assert_equal 500, span.duration_ms
       end
 
       def test_to_json
