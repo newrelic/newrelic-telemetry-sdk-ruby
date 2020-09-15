@@ -17,14 +17,14 @@ module Newrelic
                   :service_name,
                   :custom_attributes
 
-      def initialize(name,
+      def initialize name,
                      id: Util.generate_guid(8),
                      trace_id: Util.generate_guid(16),
                      timestamp_ms: Util.time_to_ms,
                      duration_ms: nil,
                      parent_id: nil,
                      service_name: nil,
-                     custom_attributes: nil)
+                     custom_attributes: nil
 
         @name = name
         @id = id
@@ -36,7 +36,7 @@ module Newrelic
         @custom_attributes = custom_attributes
       end
 
-      def finish(end_time_ms: Util.time_to_ms)
+      def finish end_time_ms: Util.time_to_ms
         @duration_ms = end_time_ms - @timestamp_ms
       end
 
