@@ -37,7 +37,7 @@ module Newrelic
 
       def finish(end_time_ms: Util.time_to_ms)
         duration = end_time_ms - @contents[:timestamp]
-        @contents[:duration] = duration
+        @contents[:attributes][:duration] = duration
       end
     end
   end

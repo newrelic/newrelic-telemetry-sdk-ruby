@@ -86,7 +86,7 @@ module Newrelic
         end_time = start_time + 3000
         span.finish(end_time_ms: end_time)
 
-        assert_equal 3000, span.contents[:duration]
+        assert_equal 3000, span.contents[:attributes][:duration]
       end
     end
   end
