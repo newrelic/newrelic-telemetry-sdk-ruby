@@ -52,11 +52,15 @@ module Newrelic
       end
 
       def test_finish
-        start_time_ms = Util.time_to_ms
-        span = Span.new("Name", timestamp_ms: start_time_ms)
+        span = Util.stub :time_to_ms, 0 do
+          start_time_ms = Util.time_to_ms
+          Span.new("Name", timestamp_ms: start_time_ms)
+        end
 
-        end_time_ms = start_time_ms + 1000
-        span.finish(end_time_ms: end_time_ms)
+        Util.stub :time_to_ms, 1000 do
+          end_time_ms = Util.time_to_ms
+          span.finish(end_time_ms: end_time_ms)
+        end
 
         assert_equal 1000, span.duration_ms
       end
@@ -78,7 +82,9 @@ module Newrelic
                         service_name: "My Service",
                         custom_attributes: custom_attributes)
 
-        span.finish(end_time_ms: end_time_ms)
+        Process.stub :clock_gettime, 1 do
+          span.finish(end_time_ms: end_time_ms)
+        end
 
         expected_data = {
           :id => id,
