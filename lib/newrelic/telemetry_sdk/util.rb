@@ -24,9 +24,7 @@ module Newrelic
         guid
       end
 
-      # Should be used for all timing. If we need to support Ruby 2.0 where we
-      # can't use a monotonic clock, we can make this conditional based on version.
-      def time_to_ms time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      def time_to_ms time = Time.now
         (time.to_f * 1000).round
       end
     end
