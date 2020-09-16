@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-telemetry-sdk-ruby/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'new_relic/telemetry_sdk/util'
 require 'json'
@@ -42,18 +43,18 @@ module NewRelic
 
       def to_h
         data = {
-          :id => @id,
-          :'trace.id' => @trace_id,
-          :timestamp => @start_time_ms,
-          :attributes => {
-            :'duration.ms' => @duration_ms,
-            :name => @name,
-            :'parent.id' => @parent_id,
-            :'service.name' => @service_name
+          "id" => @id,
+          "trace.id" => @trace_id,
+          "timestamp" => @start_time_ms,
+          "attributes" => {
+            "duration.ms" => @duration_ms,
+            "name" => @name,
+            "parent.id" => @parent_id,
+            "service.name" => @service_name
           }
         }
 
-        data[:attributes].merge! @custom_attributes if @custom_attributes
+        data["attributes"].merge! @custom_attributes if @custom_attributes
 
         data
       end
