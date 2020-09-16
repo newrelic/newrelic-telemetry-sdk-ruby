@@ -14,7 +14,7 @@ module Newrelic
         span = Span.new "Name"
         assert span.id.is_a? String
         assert span.trace_id.is_a? String
-        assert span.timestamp_ms.is_a? Integer
+        assert span.start_time_ms.is_a? Integer
 
         # Note: should this go in recommended attributes?
         # It is recommended from the point of view of the
@@ -54,7 +54,7 @@ module Newrelic
       def test_finish_with_end_time_supplied
         span = Util.stub :time_to_ms, 0 do
           start_time_ms = Util.time_to_ms
-          Span.new "Name", timestamp_ms: start_time_ms
+          Span.new "Name", start_time_ms: start_time_ms
         end
 
         Util.stub :time_to_ms, 1000 do
@@ -68,7 +68,7 @@ module Newrelic
       def test_finish_without_end_time_supplied
         span = Util.stub :time_to_ms, 0 do
           start_time_ms = Util.time_to_ms
-          Span.new "Name", timestamp_ms: start_time_ms
+          Span.new "Name", start_time_ms: start_time_ms
         end
 
         Util.stub :time_to_ms, 500 do
@@ -81,16 +81,16 @@ module Newrelic
       def test_to_json
         id = Util.generate_guid 8
         trace_id = Util.generate_guid 16
-        timestamp_ms = Util.time_to_ms
+        start_time_ms = Util.time_to_ms
 
         duration_ms = 1000
-        end_time_ms = timestamp_ms + 1000
+        end_time_ms = start_time_ms + 1000
         custom_attributes = { :custom_key => "custom_value" }
 
         span = Span.new "Name",
                         id: id,
                         trace_id: trace_id,
-                        timestamp_ms: timestamp_ms,
+                        start_time_ms: start_time_ms,
                         parent_id: "c617c2813a222a34",
                         service_name: "My Service",
                         custom_attributes: custom_attributes
@@ -102,7 +102,7 @@ module Newrelic
         expected_data = {
           :id => id,
           :'trace.id' => trace_id,
-          :timestamp  => timestamp_ms,
+          :timestamp  => start_time_ms,
           :attributes => {
             :'duration.ms'  => duration_ms,
             :'parent.id'    => "c617c2813a222a34",
