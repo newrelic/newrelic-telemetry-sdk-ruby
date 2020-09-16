@@ -1,6 +1,6 @@
-require "newrelic/telemetry_sdk/version"
+require "new_relic/telemetry_sdk/version"
 
-module Newrelic
+module NewRelic
   module TelemetrySdk
     class Error < StandardError; end
     # Your code goes here...

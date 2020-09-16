@@ -4,10 +4,10 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'../..','test_helper'))
 
-require 'newrelic/telemetry_sdk/span'
-require 'newrelic/telemetry_sdk/util'
+require 'new_relic/telemetry_sdk/span'
+require 'new_relic/telemetry_sdk/util'
 
-module Newrelic
+module NewRelic
   module TelemetrySdk
     class SpanTest < Minitest::Test
       def test_required_attributes

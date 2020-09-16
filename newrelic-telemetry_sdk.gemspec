@@ -1,10 +1,10 @@
 lib = File.expand_path("lib", __dir__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require "newrelic/telemetry_sdk/version"
+require "new_relic/telemetry_sdk/version"
 
 Gem::Specification.new do |spec|
   spec.name          = "newrelic-telemetry_sdk"
-  spec.version       = Newrelic::TelemetrySdk::VERSION
+  spec.version       = NewRelic::TelemetrySdk::VERSION
   spec.authors       = ["Rachel Klein", "Tanna McClure", "Michael Lang"]
   spec.email         = ["support@newrelic.com"]
 

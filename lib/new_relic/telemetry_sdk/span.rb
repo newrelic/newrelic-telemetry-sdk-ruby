@@ -2,10 +2,10 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-telemetry-sdk-ruby/blob/main/LICENSE for complete details.
 
-require 'newrelic/telemetry_sdk/util'
+require 'new_relic/telemetry_sdk/util'
 require 'json'
 
-module Newrelic
+module NewRelic
   module TelemetrySdk
     class Span
       attr_reader :id,
