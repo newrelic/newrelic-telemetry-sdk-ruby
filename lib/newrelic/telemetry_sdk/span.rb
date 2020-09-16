@@ -8,29 +8,29 @@ require 'json'
 module Newrelic
   module TelemetrySdk
     class Span
-      attr_reader :name,
-                  :id,
+      attr_reader :id,
                   :trace_id,
                   :start_time_ms,
                   :duration_ms,
+                  :name,
                   :parent_id,
                   :service_name,
                   :custom_attributes
 
-      def initialize name,
-                     id: Util.generate_guid(8),
+      def initialize id: Util.generate_guid(8),
                      trace_id: Util.generate_guid(16),
                      start_time_ms: Util.time_to_ms,
                      duration_ms: nil,
+                     name: nil,
                      parent_id: nil,
                      service_name: nil,
                      custom_attributes: nil
 
-        @name = name
         @id = id
         @trace_id = trace_id
         @start_time_ms = start_time_ms
         @duration_ms = duration_ms
+        @name = name
         @parent_id = parent_id
         @service_name = service_name
         @custom_attributes = custom_attributes
@@ -47,6 +47,7 @@ module Newrelic
           :timestamp => @start_time_ms,
           :attributes => {
             :'duration.ms' => @duration_ms,
+            :name => @name,
             :'parent.id' => @parent_id,
             :'service.name' => @service_name
           }

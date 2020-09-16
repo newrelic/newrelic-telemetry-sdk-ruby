@@ -11,27 +11,23 @@ module Newrelic
   module TelemetrySdk
     class SpanTest < Minitest::Test
       def test_required_attributes
-        span = Span.new "Name"
+        span = Span.new
         assert span.id.is_a? String
         assert span.trace_id.is_a? String
         assert span.start_time_ms.is_a? Integer
-
-        # Note: should this go in recommended attributes?
-        # It is recommended from the point of view of the
-        # Trace API but at least some Telemetry SDK implementations
-        # do require it on span creation.
-        assert_equal "Name", span.name
-        assert span.name.is_a? String
       end
 
       def test_recommended_attributes
-        span = Span.new "Name",
-                        duration_ms: 123456,
+        span = Span.new duration_ms: 123456,
                         parent_id: "c617c2813a222a34",
+                        name: "Name",
                         service_name: "My Service"
 
         assert_equal 123456, span.duration_ms
         assert span.duration_ms.is_a? Integer
+
+        assert_equal "Name", span.name
+        assert span.name.is_a? String
 
         assert_equal "c617c2813a222a34", span.parent_id
         assert span.parent_id.is_a? String
@@ -46,7 +42,7 @@ module Newrelic
           :custom_key   => "custom_value"
         }
 
-        span = Span.new "Name", custom_attributes: custom_attributes
+        span = Span.new custom_attributes: custom_attributes
 
         assert_equal custom_attributes, span.custom_attributes
       end
@@ -54,7 +50,7 @@ module Newrelic
       def test_finish_with_end_time_supplied
         span = Util.stub :time_to_ms, 0 do
           start_time_ms = Util.time_to_ms
-          Span.new "Name", start_time_ms: start_time_ms
+          Span.new start_time_ms: start_time_ms
         end
 
         Util.stub :time_to_ms, 1000 do
@@ -68,7 +64,7 @@ module Newrelic
       def test_finish_without_end_time_supplied
         span = Util.stub :time_to_ms, 0 do
           start_time_ms = Util.time_to_ms
-          Span.new "Name", start_time_ms: start_time_ms
+          Span.new start_time_ms: start_time_ms
         end
 
         Util.stub :time_to_ms, 500 do
@@ -87,10 +83,10 @@ module Newrelic
         end_time_ms = start_time_ms + 1000
         custom_attributes = { :custom_key => "custom_value" }
 
-        span = Span.new "Name",
-                        id: id,
+        span = Span.new id: id,
                         trace_id: trace_id,
                         start_time_ms: start_time_ms,
+                        name: "Name",
                         parent_id: "c617c2813a222a34",
                         service_name: "My Service",
                         custom_attributes: custom_attributes
@@ -104,8 +100,9 @@ module Newrelic
           :'trace.id' => trace_id,
           :timestamp  => start_time_ms,
           :attributes => {
-            :'duration.ms'  => duration_ms,
-            :'parent.id'    => "c617c2813a222a34",
+            :'duration.ms' => duration_ms,
+            :name => "Name",
+            :'parent.id' => "c617c2813a222a34",
             :'service.name' => "My Service",
             :custom_key   => "custom_value"
           }
