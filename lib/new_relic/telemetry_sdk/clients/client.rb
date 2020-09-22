@@ -40,7 +40,7 @@ module NewRelic
         # each smaller batch should have its own.
         @headers['x-request-id'] = SecureRandom.uuid
 
-        post_body = { @payload_type => [batch.to_json] }
+        post_body = { @payload_type => [batch.to_h] }
         post_body["common_attributes"] = common_attributes if common_attributes
         response = send_request [post_body]
 

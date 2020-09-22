@@ -75,14 +75,14 @@ module NewRelic
         assert_equal 500, span.duration_ms
       end
 
-      def test_to_json
+      def test_to_h
         id = Util.generate_guid 8
         trace_id = Util.generate_guid 16
         start_time_ms = Util.time_to_ms
 
         duration_ms = 1000
         end_time_ms = start_time_ms + 1000
-        custom_attributes = { :custom_key => "custom_value" }
+        custom_attributes = { "custom_key" => "custom_value" }
 
         span = Span.new id: id,
                         trace_id: trace_id,
@@ -97,19 +97,19 @@ module NewRelic
         end
 
         expected_data = {
-          :id => id,
-          :'trace.id' => trace_id,
-          :timestamp  => start_time_ms,
-          :attributes => {
-            :'duration.ms' => duration_ms,
-            :name => "Name",
-            :'parent.id' => "c617c2813a222a34",
-            :'service.name' => "My Service",
-            :custom_key   => "custom_value"
+          "id" => id,
+          "trace.id" => trace_id,
+          "timestamp" => start_time_ms,
+          "attributes" => {
+            "duration.ms" => duration_ms,
+            "name" => "Name",
+            "parent.id" => "c617c2813a222a34",
+            "service.name" => "My Service",
+            "custom_key" => "custom_value"
           }
-        }.to_json
+        }
 
-        assert_equal expected_data, span.to_json
+        assert_equal expected_data, span.to_h
       end
     end
   end

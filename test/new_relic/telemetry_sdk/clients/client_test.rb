@@ -12,8 +12,8 @@ module NewRelic
     class ClientTest < Minitest::Test
 
       class BatchStub
-        def to_json
-          { "key" => "data" }.to_json
+        def to_h
+          { "key" => "data" }
         end
       end
 
