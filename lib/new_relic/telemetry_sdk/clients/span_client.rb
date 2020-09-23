@@ -1,7 +1,7 @@
 ﻿# encoding: utf-8
+# frozen_string_literal: true
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-telemetry-sdk-ruby/blob/main/LICENSE for complete details.
-# frozen_string_literal: true
 
 require 'new_relic/telemetry_sdk/clients/client'
 require 'securerandom'
