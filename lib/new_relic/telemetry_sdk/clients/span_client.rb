@@ -12,9 +12,6 @@ module NewRelic
       def initialize host: 'https://trace-api.newrelic.com'
         super host: host,
               path: '/trace/v1',
-               # Note: see whether anything should be sent
-               # via query params
-              query_params: nil,
               headers: {
                 :'Content-Type' => 'application/json',
                 # Note: should be pulled from configuration when

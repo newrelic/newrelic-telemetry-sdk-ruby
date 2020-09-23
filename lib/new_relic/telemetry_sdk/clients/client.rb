@@ -14,13 +14,10 @@ module NewRelic
       def initialize host:,
                      path:,
                      headers: {},
-                     # Note: see whether anything should be sent
-                     # via query params
-                     query_params: nil,
                      use_gzip: true,
                      payload_type:
         @connection = set_up_connection host
-        @path = construct_full_path path, query_params
+        @path = path
         @headers = headers
         @gzip_request = use_gzip
         add_content_encoding_header @headers if @gzip_request
@@ -56,16 +53,6 @@ module NewRelic
         conn = Net::HTTP.new uri.host, uri.port
         conn.use_ssl = true
         conn
-      end
-
-      def construct_full_path path, query_params
-        return path unless query_params
-        query_string = encode_query_params query_params
-        "#{path}?#{query_string}"
-      end
-
-      def encode_query_params params
-        URI.encode_www_form params
       end
 
       def gzip_data data
