@@ -8,14 +8,14 @@ require 'json'
 module NewRelic
   module TelemetrySdk
     class Span
-      attr_reader :id,
-                  :trace_id,
-                  :start_time_ms,
-                  :duration_ms,
-                  :name,
-                  :parent_id,
-                  :service_name,
-                  :custom_attributes
+      attr_accessor :id,
+                    :trace_id,
+                    :start_time_ms,
+                    :duration_ms,
+                    :name,
+                    :parent_id,
+                    :service_name,
+                    :custom_attributes
 
       def initialize id: Util.generate_guid(8),
                      trace_id: Util.generate_guid(16),

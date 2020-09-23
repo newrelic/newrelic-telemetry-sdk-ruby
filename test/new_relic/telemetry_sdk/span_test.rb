@@ -47,6 +47,21 @@ module NewRelic
         assert_equal custom_attributes, span.custom_attributes
       end
 
+      def test_adding_attributes_after_span_creation
+        custom_attributes = {
+          :'user.email' => "me@newr.com",
+          :custom_key   => "custom_value"
+        }
+
+        span = Span.new
+
+        span.custom_attributes = custom_attributes
+        span.service_name = 'My Service'
+
+        assert_equal custom_attributes, span.custom_attributes
+        assert_equal 'My Service', span.service_name
+      end
+
       def test_finish_with_end_time_supplied
         span = Util.stub :time_to_ms, 0 do
           start_time_ms = Util.time_to_ms
