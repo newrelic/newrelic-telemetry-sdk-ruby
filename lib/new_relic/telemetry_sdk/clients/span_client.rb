@@ -16,12 +16,12 @@ module NewRelic
                # via query params
               query_params: nil,
               headers: {
-                'Content-Type' => 'application/json',
+                :'Content-Type' => 'application/json',
                 # Note: should be pulled from configuration when
                 # we develop that system
-                'Api-Key' => ENV['API_KEY'],
-                'Data-Format' => 'newrelic',
-                'Data-Format-Version' => '1'
+                :'Api-Key' => ENV['API_KEY'],
+                :'Data-Format' => 'newrelic',
+                :'Data-Format-Version' => '1'
               },
               payload_type: 'spans'
       end

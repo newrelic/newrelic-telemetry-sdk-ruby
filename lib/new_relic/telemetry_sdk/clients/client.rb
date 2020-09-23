@@ -38,7 +38,7 @@ module NewRelic
         # be used for each unique batch, including on retries.
         # If a batch is split due to a 413 response,
         # each smaller batch should have its own.
-        @headers['x-request-id'] = SecureRandom.uuid
+        @headers[:'x-request-id'] = SecureRandom.uuid
 
         post_body = { @payload_type => [batch.to_h] }
         response = send_request [post_body]
@@ -48,7 +48,7 @@ module NewRelic
       end
 
       def add_content_encoding_header headers
-        headers.merge!('content-encoding' => 'gzip')
+        headers.merge!(:'content-encoding' => 'gzip')
       end
 
       def set_up_connection host
