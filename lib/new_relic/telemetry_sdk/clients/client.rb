@@ -25,7 +25,7 @@ module NewRelic
       end
 
       def send_request body
-        body = JSON.generate body
+        body = serialize body
         body = gzip_data body if @gzip_request
         @connection.post @path, body, @headers
       end
@@ -53,6 +53,10 @@ module NewRelic
         conn = Net::HTTP.new uri.host, uri.port
         conn.use_ssl = true
         conn
+      end
+
+      def serialize data
+        JSON.generate data
       end
 
       def gzip_data data
