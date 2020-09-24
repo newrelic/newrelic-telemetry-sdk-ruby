@@ -4,7 +4,6 @@
 # See https://github.com/newrelic/newrelic-telemetry-sdk-ruby/blob/main/LICENSE for complete details.
 
 require 'new_relic/telemetry_sdk/util'
-require 'json'
 
 module NewRelic
   module TelemetrySdk
