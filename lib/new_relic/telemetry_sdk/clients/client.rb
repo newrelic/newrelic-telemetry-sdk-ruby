@@ -30,7 +30,7 @@ module NewRelic
         @connection.post @path, body, @headers
       end
 
-      def report batch
+      def report batch, common_attributes=nil
         # We need to generate a version 4 uuid that will
         # be used for each unique batch, including on retries.
         # If a batch is split due to a 413 response,
@@ -38,6 +38,7 @@ module NewRelic
         @headers[:'x-request-id'] = SecureRandom.uuid
 
         post_body = { @payload_type => [batch.to_h] }
+        post_body[:common][:attributes] = common_attributes if common_attributes
         response = send_request [post_body]
 
         return if response.is_a? Net::HTTPSuccess
