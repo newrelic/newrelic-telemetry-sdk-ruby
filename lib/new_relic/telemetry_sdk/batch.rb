@@ -6,7 +6,8 @@
 module NewRelic
   module TelemetrySdk
     class Batch
-      attr_accessor :items
+      attr_reader :items
+      attr_accessor :common_attributes
 
       def initialize common_attributes=nil
         @items = []
@@ -25,8 +26,10 @@ module NewRelic
           data = @items.map(&:to_h)
           @items = []
         end
-        return data, @common_attributes
+        return data
       end
+
+      alias_method :to_h, :flush
     end
   end
 end

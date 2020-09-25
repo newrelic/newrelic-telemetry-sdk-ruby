@@ -26,18 +26,18 @@ module NewRelic
         span = Span.new
         @batch.record span
 
-        data, _ = @batch.flush
+        data = @batch.flush
 
         assert_equal 1, data.length
       end
 
       def test_common_attributes
-        common_attributes = { :foo => "bar" }
-        @batch_with_common_attributes = Batch.new common_attributes
+        expected = { :foo => "bar" }
 
-        _, actual = @batch_with_common_attributes.flush
+        @batch_with_common_attributes = Batch.new expected
+        actual = @batch_with_common_attributes.common_attributes
 
-        assert_equal common_attributes, actual
+        assert_equal expected, actual
       end
     end
   end
