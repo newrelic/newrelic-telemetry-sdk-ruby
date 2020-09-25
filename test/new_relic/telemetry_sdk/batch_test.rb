@@ -23,7 +23,7 @@ module NewRelic
       end
 
       def test_flush
-        spans = Span.new
+        span = Span.new
         @batch.record span
 
         data, _ = @batch.flush
