@@ -5,28 +5,28 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'../..','test_helper'))
 
-require 'new_relic/telemetry_sdk/batch'
+require 'new_relic/telemetry_sdk/buffer'
 require 'new_relic/telemetry_sdk/span'
 
 module NewRelic
   module TelemetrySdk
-    class BatchTest < Minitest::Test
+    class BufferTest < Minitest::Test
       def setup
-        @batch = Batch.new
+        @buffer = Buffer.new
       end
 
       def test_record
         span = Span.new
-        @batch.record span
+        @buffer.record span
 
-        assert_equal 1, @batch.items.length
+        assert_equal 1, @buffer.items.length
       end
 
       def test_flush
         span = Span.new
-        @batch.record span
+        @buffer.record span
 
-        data = @batch.flush
+        data = @buffer.flush
 
         assert_equal 1, data.length
       end
@@ -34,8 +34,8 @@ module NewRelic
       def test_common_attributes
         expected = { :foo => "bar" }
 
-        @batch_with_common_attributes = Batch.new expected
-        actual = @batch_with_common_attributes.common_attributes
+        @buffer_with_common_attributes = Buffer.new expected
+        actual = @buffer_with_common_attributes.common_attributes
 
         assert_equal expected, actual
       end

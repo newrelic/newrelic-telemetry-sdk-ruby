@@ -5,7 +5,7 @@
 
 module NewRelic
   module TelemetrySdk
-    class Batch
+    class Buffer
       attr_reader :items
       attr_accessor :common_attributes
 
@@ -15,7 +15,7 @@ module NewRelic
         @lock = Mutex.new
       end
 
-      # Items recorded into a batch must have a to_h method for transformation
+      # Items recorded into the buffer must have a to_h method for transformation
       def record item
         @lock.synchronize { @items << item }
       end
