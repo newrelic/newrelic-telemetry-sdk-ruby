@@ -11,7 +11,7 @@ module NewRelic
   module TelemetrySdk
     class ClientTest < Minitest::Test
 
-      class BatchStub
+      class ItemStub
         def to_h
           { "key" => "data" }
         end
@@ -22,14 +22,14 @@ module NewRelic
         @client = Client.new(host: 'host', path: 'path', payload_type: 'spans')
         @client.instance_variable_set(:@connection, @connection)
         @sleep = @client.stubs(:sleep)
-        @batch = BatchStub.new
+        @item = ItemStub.new
       end
 
       def test_status_ok
         @sleep.never
         stub_server(200).once
 
-        @client.report @batch
+        @client.report @item
       end
 
       def stub_server status, message = 'default message'

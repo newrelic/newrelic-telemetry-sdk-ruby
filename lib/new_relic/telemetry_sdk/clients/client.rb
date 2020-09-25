@@ -8,6 +8,8 @@ require 'json'
 require 'zlib'
 require 'securerandom'
 
+require 'new_relic/telemetry_sdk/batch'
+
 module NewRelic
   module TelemetrySdk
     class Client
@@ -30,14 +32,20 @@ module NewRelic
         @connection.post @path, body, @headers
       end
 
-      def report batch
+      def report item
+        batch = Batch.new
+        batch.record item
+        report_batch batch
+      end
+
+      def report_batch batch
         # We need to generate a version 4 uuid that will
         # be used for each unique batch, including on retries.
         # If a batch is split due to a 413 response,
         # each smaller batch should have its own.
         @headers[:'x-request-id'] = SecureRandom.uuid
 
-        post_body = { @payload_type => [batch.to_h] }
+        post_body = { @payload_type => batch.to_h }
 
         if defined? batch.common_attributes
           post_body[:common] = {}
