@@ -29,6 +29,7 @@ module NewRelic
         data = @buffer.flush
 
         assert_equal 1, data.length
+        assert_equal 0, @buffer.items.length
       end
 
       def test_common_attributes
