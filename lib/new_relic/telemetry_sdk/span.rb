@@ -9,14 +9,14 @@ require 'json'
 module NewRelic
   module TelemetrySdk
     class Span
-      attr_reader :id,
-                  :trace_id,
-                  :start_time_ms,
-                  :duration_ms,
-                  :name,
-                  :parent_id,
-                  :service_name,
-                  :custom_attributes
+      attr_accessor :id,
+                    :trace_id,
+                    :start_time_ms,
+                    :duration_ms,
+                    :name,
+                    :parent_id,
+                    :service_name,
+                    :custom_attributes
 
       def initialize id: Util.generate_guid(8),
                      trace_id: Util.generate_guid(16),
@@ -43,20 +43,24 @@ module NewRelic
 
       def to_h
         data = {
-          "id" => @id,
-          "trace.id" => @trace_id,
-          "timestamp" => @start_time_ms,
-          "attributes" => {
-            "duration.ms" => @duration_ms,
-            "name" => @name,
-            "parent.id" => @parent_id,
-            "service.name" => @service_name
+          :id => @id,
+          :'trace.id' => @trace_id,
+          :timestamp => @start_time_ms,
+          :attributes => {
+            :'duration.ms' => @duration_ms,
+            :name => @name,
+            :'parent.id' => @parent_id,
+            :'service.name' => @service_name
           }
         }
 
-        data["attributes"].merge! @custom_attributes if @custom_attributes
+        data[:attributes].merge! @custom_attributes if @custom_attributes
 
         data
+      end
+
+      def to_json
+        to_h.to_json
       end
     end
   end

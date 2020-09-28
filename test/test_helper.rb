@@ -3,3 +3,4 @@ require "new_relic/telemetry_sdk"
 
 require "minitest/autorun"
 require "mocha/setup"
+require "timecop"

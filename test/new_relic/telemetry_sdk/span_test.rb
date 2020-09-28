@@ -48,13 +48,30 @@ module NewRelic
         assert_equal custom_attributes, span.custom_attributes
       end
 
+      def test_adding_attributes_after_span_creation
+        custom_attributes = {
+          :'user.email' => "me@newr.com",
+          :custom_key   => "custom_value"
+        }
+
+        span = Span.new
+
+        span.custom_attributes = custom_attributes
+        span.service_name = 'My Service'
+
+        assert_equal custom_attributes, span.custom_attributes
+        assert_equal 'My Service', span.service_name
+      end
+
       def test_finish_with_end_time_supplied
-        span = Util.stub :time_to_ms, 0 do
+        time = Time.now
+        span = Timecop.freeze(time) do
           start_time_ms = Util.time_to_ms
           Span.new start_time_ms: start_time_ms
         end
 
-        Util.stub :time_to_ms, 1000 do
+        new_time = time + 1
+        Timecop.travel(new_time) do
           end_time_ms = Util.time_to_ms
           span.finish end_time_ms: end_time_ms
         end
@@ -63,26 +80,28 @@ module NewRelic
       end
 
       def test_finish_without_end_time_supplied
-        span = Util.stub :time_to_ms, 0 do
+        time = Time.now
+        span = Timecop.freeze(time) do
           start_time_ms = Util.time_to_ms
           Span.new start_time_ms: start_time_ms
         end
 
-        Util.stub :time_to_ms, 500 do
+        new_time = time + 1
+        Timecop.travel(new_time) do
           span.finish
         end
 
-        assert_equal 500, span.duration_ms
+        assert_equal 1000, span.duration_ms
       end
 
-      def test_to_h
+      def test_to_json
         id = Util.generate_guid 8
         trace_id = Util.generate_guid 16
         start_time_ms = Util.time_to_ms
 
         duration_ms = 1000
         end_time_ms = start_time_ms + 1000
-        custom_attributes = { "custom_key" => "custom_value" }
+        custom_attributes = { :custom_key => "custom_value" }
 
         span = Span.new id: id,
                         trace_id: trace_id,
@@ -97,19 +116,19 @@ module NewRelic
         end
 
         expected_data = {
-          "id" => id,
-          "trace.id" => trace_id,
-          "timestamp" => start_time_ms,
-          "attributes" => {
-            "duration.ms" => duration_ms,
-            "name" => "Name",
-            "parent.id" => "c617c2813a222a34",
-            "service.name" => "My Service",
-            "custom_key" => "custom_value"
+          :id => id,
+          :'trace.id' => trace_id,
+          :timestamp  => start_time_ms,
+          :attributes => {
+            :'duration.ms' => duration_ms,
+            :name => "Name",
+            :'parent.id' => "c617c2813a222a34",
+            :'service.name' => "My Service",
+            :custom_key   => "custom_value"
           }
-        }
+        }.to_json
 
-        assert_equal expected_data, span.to_h
+        assert_equal expected_data, span.to_json
       end
     end
   end
