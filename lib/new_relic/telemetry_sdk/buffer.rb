@@ -26,7 +26,7 @@ module NewRelic
           data = @items.map(&:to_h)
           @items = []
         end
-        return data
+        return data, @common_attributes
       end
 
       alias_method :to_h, :flush

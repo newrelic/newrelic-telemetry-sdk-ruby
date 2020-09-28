@@ -26,7 +26,7 @@ module NewRelic
         span = Span.new
         @buffer.record span
 
-        data = @buffer.flush
+        data, _ = @buffer.flush
 
         assert_equal 1, data.length
         assert_equal 0, @buffer.items.length
