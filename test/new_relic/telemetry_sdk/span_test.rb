@@ -129,6 +129,14 @@ module NewRelic
 
         assert_equal expected_data, span.to_json
       end
+
+      def test_wrapping_block_in_span
+        span = Span.wrap do
+          'foo' * 5
+        end
+
+        refute_nil span
+      end
     end
   end
 end

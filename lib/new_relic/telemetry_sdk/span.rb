@@ -17,6 +17,32 @@ module NewRelic
                     :service_name,
                     :custom_attributes
 
+      def self.wrap id: Util.generate_guid(8),
+                    trace_id: Util.generate_guid(16),
+                    start_time_ms: Util.time_to_ms,
+                    duration_ms: nil,
+                    name: nil,
+                    parent_id: nil,
+                    service_name: nil,
+                    custom_attributes: nil
+        span = Span.new id: id,
+                        trace_id: trace_id,
+                        start_time_ms: start_time_ms,
+                        duration_ms: duration_ms,
+                        name: name,
+                        parent_id: parent_id,
+                        service_name: service_name,
+                        custom_attributes: custom_attributes
+        begin
+          yield
+        rescue => exception
+          # Log issue with span creation
+        ensure
+          span.finish if span
+        end
+        span
+      end
+
       def initialize id: Util.generate_guid(8),
                      trace_id: Util.generate_guid(16),
                      start_time_ms: Util.time_to_ms,
