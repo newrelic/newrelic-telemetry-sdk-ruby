@@ -15,7 +15,6 @@ module NewRelic
         @items = []
         @common_attributes = common_attributes
         @lock = Mutex.new
-        @capacity = capacity
       end
 
       # Items recorded into the buffer must have a to_h method for transformation
