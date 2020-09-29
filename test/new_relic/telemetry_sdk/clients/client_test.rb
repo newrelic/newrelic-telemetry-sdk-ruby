@@ -19,10 +19,31 @@ module NewRelic
 
       def setup
         @connection = stub
-        @client = Client.new(host: 'host', path: 'path', payload_type: 'spans')
+        @client = Client.new(host: 'host', path: 'path', payload_type: :spans)
         @client.instance_variable_set(:@connection, @connection)
         @sleep = @client.stubs(:sleep)
         @item = ItemStub.new
+      end
+
+      # We should be using the common format for payloads as described here:
+      # https://github.com/newrelic/newrelic-telemetry-sdk-specs/blob/master/communication.md#payload
+      def test_format_payload
+        data = ['Something', 'Somethingelse']
+        common_attributes = {:foo => "bar"}
+
+        expected = [
+          {
+            :common => {
+              :attributes => {
+                  :foo => "bar"
+                }
+            },
+            :spans => ['Something', 'Somethingelse']
+          }
+        ]
+
+        payload = @client.format_payload(data, common_attributes)
+        assert_equal expected, payload
       end
 
       def test_status_ok

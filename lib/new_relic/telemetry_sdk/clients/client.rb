@@ -43,6 +43,14 @@ module NewRelic
         # each smaller batch should have its own.
         @headers[:'x-request-id'] = SecureRandom.uuid
 
+        post_body = format_payload data, common_attributes
+        response = send_request post_body
+
+        return if response.is_a? Net::HTTPSuccess
+        # Otherwise, take appropriate action based on response code
+      end
+
+      def format_payload data, common_attributes
         post_body = { @payload_type => data }
 
         if common_attributes
@@ -50,10 +58,7 @@ module NewRelic
           post_body[:common][:attributes] = common_attributes
         end
 
-        response = send_request [post_body]
-
-        return if response.is_a? Net::HTTPSuccess
-        # Otherwise, take appropriate action based on response code
+        [post_body]
       end
 
       def add_content_encoding_header headers

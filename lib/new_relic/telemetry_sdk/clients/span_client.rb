@@ -20,7 +20,7 @@ module NewRelic
                 :'Data-Format' => 'newrelic',
                 :'Data-Format-Version' => '1'
               },
-              payload_type: 'spans'
+              payload_type: :spans
       end
     end
   end
