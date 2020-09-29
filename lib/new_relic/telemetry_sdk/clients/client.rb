@@ -22,8 +22,8 @@ module NewRelic
         @path = path
         @headers = headers
         @gzip_request = use_gzip
-        add_content_encoding_header @headers if @gzip_request
         @payload_type = payload_type
+        add_content_encoding_header @headers if @gzip_request
       end
 
       def send_request body
