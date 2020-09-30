@@ -12,6 +12,7 @@ module NewRelic
         @interval = interval
         @harvestables = {}
         @shutdown = false
+        @running = false
         @lock = Mutex.new
       end
 
@@ -28,12 +29,18 @@ module NewRelic
         @harvestables[name]
       end
 
+      def is_running?
+        @running
+      end
+      
       def start
+        @running = true
         @harvest_thread = Thread.new do
           while !@shutdown do
             sleep @interval
             harvest
           end
+          @running = false
         end
       end
 

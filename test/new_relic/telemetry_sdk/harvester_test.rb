@@ -58,6 +58,18 @@ module NewRelic
         harvester.process_harvestable ({buffer: buffer, client: client})
       end
 
+      def test_stops_harvest_thread 
+        harvester = Harvester.new 0
+        harvester.expects(:harvest).at_least_once
+
+        harvester.start 
+        sleep 0.05
+        assert_equal true, harvester.is_running?
+
+        harvester.stop
+        assert_equal false, harvester.is_running?
+      end
+
     end
   end
 end
