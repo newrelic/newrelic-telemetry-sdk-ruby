@@ -32,15 +32,6 @@ module NewRelic
         assert_equal 0, @buffer.items.length
       end
 
-      def test_buffer_limits_itself_to_capacity
-        @buffer.stubs(:capacity).returns(10)
-
-        11.times { @buffer.record Span.new }
-        @buffer.unstub(:capacity)
-
-        assert_equal 10, @buffer.size
-      end
-
       def test_common_attributes
         expected = { :foo => "bar" }
 

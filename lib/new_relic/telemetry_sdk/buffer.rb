@@ -9,8 +9,6 @@ module NewRelic
       attr_reader :items
       attr_accessor :common_attributes
 
-      CAPACITY = 2000
-
       def initialize common_attributes=nil
         @items = []
         @common_attributes = common_attributes
@@ -19,11 +17,7 @@ module NewRelic
 
       # Items recorded into the buffer must have a to_h method for transformation
       def record item
-        @lock.synchronize do
-          if size < capacity
-            @items << item
-          end
-        end
+        @lock.synchronize { @items << item }
       end
 
       def flush
@@ -36,14 +30,6 @@ module NewRelic
       end
 
       alias_method :to_h, :flush
-
-      def size
-        @items.length
-      end
-
-      def capacity
-        CAPACITY
-      end
     end
   end
 end
