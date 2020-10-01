@@ -92,6 +92,26 @@ module NewRelic
         harvester.instance_variable_set(:@shutdown, false) # reset it
         harvester.stop
       end
+
+      def test_harvester_interval_runs
+        harvester = Harvester.new 42
+
+        # calls sleep 3 times with the custom interval of 42
+        harvester.expects(:sleep).with(42).times(3)
+        # Calls harvest 3 times and raises an error the 3rd time
+        harvester.expects(:harvest).returns(nil) \
+          .then.returns(nil) \
+          .then.raises(RuntimeError.new) \
+          .times(3)
+
+        Thread.report_on_exception = false
+        assert_raises(RuntimeError) do 
+          thread = harvester.start
+          thread.join
+        end
+        Thread.report_on_exception = true
+      end
+
     end
   end
 end
