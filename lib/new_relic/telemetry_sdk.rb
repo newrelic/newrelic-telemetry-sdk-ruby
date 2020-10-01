@@ -1,8 +1,6 @@
-require "new_relic/telemetry_sdk/version"
+require 'net/http'
+require 'json'
+require 'zlib'
+require 'securerandom'
 
-module NewRelic
-  module TelemetrySdk
-    class Error < StandardError; end
-    # Your code goes here...
-  end
-end
+require 'new_relic/telemetry_sdk/version'

@@ -3,11 +3,6 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-telemetry-sdk-ruby/blob/main/LICENSE for complete details.
 
-require 'net/http'
-require 'json'
-require 'zlib'
-require 'securerandom'
-
 require 'new_relic/telemetry_sdk/buffer'
 
 module NewRelic
