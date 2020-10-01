@@ -23,9 +23,10 @@ module NewRelic
       def flush
         data = nil
         @lock.synchronize do
-          data = @items.map(&:to_h)
+          data = @items
           @items = []
         end
+        data.map!(&:to_h)
         return data, @common_attributes
       end
 
