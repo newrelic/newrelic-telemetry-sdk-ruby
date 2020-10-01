@@ -2,11 +2,9 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-telemetry-sdk-ruby/blob/main/LICENSE for complete details.
 
-
 require File.expand_path(File.join(File.dirname(__FILE__),'../..','test_helper'))
 
 require 'new_relic/telemetry_sdk/harvester'
-
 
 module NewRelic
   module TelemetrySdk
@@ -58,16 +56,16 @@ module NewRelic
         harvester.process_harvestable ({buffer: buffer, client: client})
       end
 
-      def test_stops_harvest_thread 
+      def test_starts_stops_harvest_thread 
         harvester = Harvester.new 0
         harvester.expects(:harvest).at_least_once
 
         harvester.start 
         sleep 0.05
-        assert_equal true, harvester.is_running?
+        assert_equal true, harvester.running?
 
         harvester.stop
-        assert_equal false, harvester.is_running?
+        assert_equal false, harvester.running?
       end
 
     end

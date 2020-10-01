@@ -29,7 +29,7 @@ module NewRelic
         @harvestables[name]
       end
 
-      def is_running?
+      def running?
         @running
       end
       
@@ -40,13 +40,14 @@ module NewRelic
             sleep @interval
             harvest
           end
+          harvest
           @running = false
         end
       end
 
       def stop
         @shutdown = true
-        @harvest_thread.join
+        @harvest_thread.join if @running
       end
 
       def harvest
