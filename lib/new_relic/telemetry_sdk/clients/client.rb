@@ -28,14 +28,17 @@ module NewRelic
       end
 
       def report item
-        report_batch [item]
+        report_batch [item, nil]
       end
 
-      def report_batch data, common_attributes=nil
+      def report_batch batch_data
         # We need to generate a version 4 uuid that will
         # be used for each unique batch, including on retries.
         # If a batch is split due to a 413 response,
         # each smaller batch should have its own.
+
+        data, common_attributes = batch_data
+
         @headers[:'x-request-id'] = SecureRandom.uuid
 
         post_body = format_payload data, common_attributes
