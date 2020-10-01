@@ -65,33 +65,33 @@ module NewRelic
 
       def test_finish_with_end_time_supplied
         time = Time.now
-        span = Timecop.freeze(time) do
-          start_time_ms = Util.time_to_ms
-          Span.new start_time_ms: start_time_ms
-        end
 
-        new_time = time + 1
-        Timecop.travel(new_time) do
+        Timecop.freeze(time) do
+          start_time_ms = Util.time_to_ms
+          span = Span.new start_time_ms: start_time_ms
+
+          new_time = time + 1
+          Timecop.travel(new_time)
           end_time_ms = Util.time_to_ms
           span.finish end_time_ms: end_time_ms
-        end
 
-        assert_equal 1000, span.duration_ms
+          assert_equal 1000, span.duration_ms
+        end
       end
 
       def test_finish_without_end_time_supplied
         time = Time.now
-        span = Timecop.freeze(time) do
+
+        Timecop.freeze(time) do
           start_time_ms = Util.time_to_ms
-          Span.new start_time_ms: start_time_ms
-        end
+          span = Span.new start_time_ms: start_time_ms
 
-        new_time = time + 1
-        Timecop.travel(new_time) do
+          new_time = time + 1
+          Timecop.travel(new_time)
           span.finish
-        end
 
-        assert_equal 1000, span.duration_ms
+          assert_equal 1000, span.duration_ms
+        end
       end
 
       def test_to_json
