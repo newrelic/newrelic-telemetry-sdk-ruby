@@ -49,8 +49,9 @@ module NewRelic
         harvester = Harvester.new
         buffer = mock
         client = mock
+        flushed_buffer = [['test_data'], ['common attributes']]
 
-        buffer.expects(:flush).once
+        buffer.expects(:flush).returns(flushed_buffer).once
         client.expects(:report_batch).once
 
         harvester.process_harvestable ({buffer: buffer, client: client})

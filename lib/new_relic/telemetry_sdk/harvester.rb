@@ -59,7 +59,10 @@ module NewRelic
       end
 
       def process_harvestable harvestable
-        harvestable[:client].report_batch harvestable[:buffer].flush
+        batch = harvestable[:buffer].flush
+        if !batch.nil? && batch[0].respond_to?(:any?) && batch[0].any?
+          harvestable[:client].report_batch batch 
+        end
       end
 
     end
