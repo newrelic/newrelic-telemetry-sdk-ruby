@@ -29,8 +29,6 @@ module NewRelic
         data.map!(&:to_h)
         return data, @common_attributes
       end
-
-      alias_method :to_h, :flush
     end
   end
 end

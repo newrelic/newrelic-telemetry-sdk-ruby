@@ -49,7 +49,7 @@ module NewRelic
         @sleep.never
         stub_server(200).once
 
-        @client.report [@item.to_h]
+        @client.report @item
       end
 
       def stub_server status, message = 'default message'

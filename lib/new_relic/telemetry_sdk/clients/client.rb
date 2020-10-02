@@ -28,7 +28,8 @@ module NewRelic
       end
 
       def report item
-        report_batch [item, nil]
+        # Report a batch of one pre-transformed item with no common attributes
+        report_batch [[item.to_h], nil]
       end
 
       def report_batch batch_data
