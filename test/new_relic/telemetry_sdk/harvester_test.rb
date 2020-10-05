@@ -28,7 +28,7 @@ module NewRelic
           buffer: buffer, 
           client: client
         }
-        assert_equal expected, harvester.lookup('test')
+        assert_equal expected, harvester['test']
       end
 
       # process_harestable gets called correct number of times

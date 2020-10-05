@@ -25,7 +25,7 @@ module NewRelic
         end
       end
 
-      def lookup name 
+      def [] name 
         @harvestables[name]
       end
 
