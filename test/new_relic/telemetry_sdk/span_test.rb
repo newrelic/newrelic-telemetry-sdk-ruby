@@ -94,7 +94,7 @@ module NewRelic
         end
       end
 
-      def test_to_json
+      def test_to_h
         id = Util.generate_guid 8
         trace_id = Util.generate_guid 16
         start_time_ms = Util.time_to_ms
@@ -126,9 +126,9 @@ module NewRelic
             :'service.name' => "My Service",
             :custom_key   => "custom_value"
           }
-        }.to_json
+        }
 
-        assert_equal expected_data, span.to_json
+        assert_equal expected_data, span.to_h
       end
     end
   end

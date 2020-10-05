@@ -4,7 +4,6 @@
 # See https://github.com/newrelic/newrelic-telemetry-sdk-ruby/blob/main/LICENSE for complete details.
 
 require 'new_relic/telemetry_sdk/util'
-require 'json'
 
 module NewRelic
   module TelemetrySdk
@@ -57,10 +56,6 @@ module NewRelic
         data[:attributes].merge! @custom_attributes if @custom_attributes
 
         data
-      end
-
-      def to_json
-        to_h.to_json
       end
     end
   end

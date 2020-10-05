@@ -3,8 +3,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-telemetry-sdk-ruby/blob/main/LICENSE for complete details.
 
-require 'new_relic/telemetry_sdk/clients/client'
-require 'securerandom'
+require_relative 'client'
 
 module NewRelic
   module TelemetrySdk
@@ -20,7 +19,7 @@ module NewRelic
                 :'Data-Format' => 'newrelic',
                 :'Data-Format-Version' => '1'
               },
-              payload_type: 'spans'
+              payload_type: :spans
       end
     end
   end
