@@ -1,3 +1,6 @@
 source 'https://rubygems.org'
 
 gem 'newrelic-telemetry_sdk', path: "../../"
+gem 'pry'
+gem 'pry-stack_explorer'
+gem 'pry-nav'
