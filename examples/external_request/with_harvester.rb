@@ -11,8 +11,11 @@ end
 def setup_buffer_harvesting common_attributes = {test_attribute: 'example'}
   @harvester = NewRelic::TelemetrySdk::Harvester.new 
   @span_client = NewRelic::TelemetrySdk::SpanClient.new
+  # Creates a buffer with common attributes that will be added to all spans in the buffer
   @buffer = NewRelic::TelemetrySdk::Buffer.new common_attributes
+  # Register the buffer with a name and the associated client
   @harvester.register 'external_spans', @buffer, @span_client
+  # Begins the harvester running in the background
   @harvester.start
 end
 
@@ -31,8 +34,6 @@ def record_external_request
   duration = finish_time - start_time
 
   custom_attributes = {
-    "name": "Net::HTTP#get",
-    "http.method": "GET",
     "http.status": response.code,
     "size": response.body.bytesize,
   }
@@ -63,7 +64,8 @@ def get_page url
 end
 
 # Creates the buffer, client, and harvester
-setup_buffer_harvesting
+common_attributes = {"name": "Net::HTTP#get", "http.method": "GET"}
+setup_buffer_harvesting common_attributes
 
 # Buffer holds multiple spans, spans are added to the buffer in the record_external_request_method
 get_page "https://google.com"
