@@ -1,28 +1,41 @@
+# This example is one of the simplest examples demonstrating sending one span 
+# at at time to the Trace API endpoint.  It will time how long it takes to retrive
+# an external URL's content and construct a span and send it to New Relic's server.
+# 
+# Usage: `API_KEY=<YOUR_API_KEY bundle exec ruby simple.rb`
 require 'net/http'
 require 'bundler'
 Bundler.require
 
 require "new_relic/telemetry_sdk"
 
+# Fail fast if an API_KEY wasn't exported to the environment.
 unless ENV["API_KEY"]
-  raise "No License key supplied.  Export API_KEY environment variable!" 
+  raise "No API Key supplied.  Export API_KEY environment variable!" 
 end
 
+# Just a random ID generator -- A string of 16 (by default) hexidemal digits.
 def random_id length=16
   length.times.map{rand(16).to_s(16)}.join
 end
 
+# Instantiates and memoizes the SDK client for sending Spans
 def span_client
   return @span_client if @span_client
   @span_client = NewRelic::TelemetrySdk::SpanClient.new
 end
 
+# Wraps the given block by recording time to retrieve URL's resource, then
+# constructs the span object and sends it to the server.
+# The response from the given block is returned as the method's result
 def record_external_request
+  # Capture time elapsed to make the external request (given block)
   start_time = Time.now
   response = yield
   finish_time = Time.now
   duration = finish_time - start_time
 
+  # Set some custom attributes for the Span (some static, some dynamic)
   custom_attributes = {
     "name": "Net::HTTP#get",
     "http.method": "GET",
@@ -30,6 +43,7 @@ def record_external_request
     "size": response.body.bytesize,
   }
 
+  # Construct the span and send it.
   span = NewRelic::TelemetrySdk::Span.new(
     id: random_id(8),
     trace_id: random_id(16),
@@ -40,9 +54,12 @@ def record_external_request
   )
   span_client.report span
 
+  # return the results from the given block/proc
   response
 end
 
+# Retrieve the resource from given URL, recording a span
+# for the operation.
 def get_page url
   uri = URI::parse(url)
   response = record_external_request do
@@ -54,11 +71,5 @@ def get_page url
   puts "Status: #{response.code}"
   puts "Size: #{response.body.bytesize}"
 end
-
-# telemetry.ConfigCommonAttributes(map[string]interface{}{
-#   "app.name":  "myServer",
-#   "host.name": "dev.server.com",
-#   "env":       "staging",
-# }),
 
 get_page "https://google.com"
