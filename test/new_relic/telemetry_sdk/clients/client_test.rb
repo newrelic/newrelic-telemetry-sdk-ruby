@@ -52,6 +52,36 @@ module NewRelic
         @client.report @item
       end
 
+      def test_status_not_found
+        @sleep.never
+        stub_server(404).once
+        @client.report @item
+      end
+      
+      def test_status_request_timeout
+        @sleep.never
+        stub_server(408).once
+        @client.report @item
+      end
+
+      def test_status_request_entity_too_large
+        @sleep.never
+        stub_server(413).once
+        @client.report @item
+      end
+
+      def test_status_request_too_many_requests
+        @sleep.never
+        stub_server(429).once
+        @client.report @item
+      end
+
+      def test_status_server_error
+        @sleep.never
+        stub_server(500).once
+        @client.report @item
+      end
+
       def stub_server status, message = 'default message'
         response = stub_response status, message
         @connection.stubs(:post).returns response

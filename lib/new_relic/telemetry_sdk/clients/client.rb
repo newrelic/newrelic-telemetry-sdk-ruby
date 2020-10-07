@@ -32,6 +32,21 @@ module NewRelic
         report_batch [[item.to_h], nil]
       end
 
+      def log_and_retry response, post_body
+      end
+
+      def log_and_retry_later response, post_body
+      end
+
+      def log_once_and_drop_data response
+      end
+
+      def log_and_split_payload response, data, common_attributes
+      end
+      
+      def log_and_retry_with_backoff response, post_body
+      end
+
       def report_batch batch_data
         # We need to generate a version 4 uuid that will
         # be used for each unique batch, including on retries.
@@ -45,8 +60,31 @@ module NewRelic
         post_body = format_payload data, common_attributes
         response = send_request post_body
 
-        return if response.is_a? Net::HTTPSuccess
-        # Otherwise, take appropriate action based on response code
+        case response
+        when Net::HTTPSuccess # 200 - 299
+   
+        when Net::HTTPBadRequest, # 400
+             Net::HTTPUnauthorized, # 401
+             Net::HTTPForbidden, # 403
+             Net::HTTPNotFound, # 404
+             Net::HTTPMethodNotAllowed, # 405
+             Net::HTTPConflict, # 409
+             Net::HTTPGone, # 410
+             Net::HTTPLengthRequired  # 411
+          log_once_and_drop_data response
+   
+        when Net::HTTPRequestTimeOut # 408
+          log_and_retry response, post_body
+
+        when Net::HTTPRequestEntityTooLarge # 413
+          log_and_split_payload response, data, common_attributes
+        
+        when Net::HTTPTooManyRequests # 429
+          log_and_retry_later response, post_body
+
+        else
+          log_and_retry_with_backoff response, post_body
+        end
       end
 
       def format_payload data, common_attributes
