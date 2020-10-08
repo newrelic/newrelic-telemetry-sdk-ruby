@@ -4,10 +4,13 @@
 # See https://github.com/newrelic/newrelic-telemetry-sdk-ruby/blob/main/LICENSE for complete details.
 
 require 'new_relic/telemetry_sdk/buffer'
+require 'new_relic/telemetry_sdk/logger'
 
 module NewRelic
   module TelemetrySdk
     class Client
+      include NewRelic::TelemetrySdk::Logger
+      
       def initialize host:,
                      path:,
                      headers: {},
@@ -39,6 +42,7 @@ module NewRelic
       end
 
       def log_once_and_drop_data response
+        log_error_once response.class, response.message
       end
 
       def log_and_split_payload response, data, common_attributes

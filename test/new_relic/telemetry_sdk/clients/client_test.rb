@@ -20,8 +20,14 @@ module NewRelic
         @connection = stub
         @client = Client.new(host: 'host', path: 'path', payload_type: :spans)
         @client.instance_variable_set(:@connection, @connection)
+        @client.logger = ::Logger.new(@log_output = StringIO.new)
         @sleep = @client.stubs(:sleep)
         @item = ItemStub.new
+      end
+
+      def log_output
+        @log_output.rewind
+        @log_output.read
       end
 
       # We should be using the common format for payloads as described here:
@@ -54,8 +60,9 @@ module NewRelic
 
       def test_status_not_found
         @sleep.never
-        stub_server(404).once
+        stub_server(404, "not found").once
         @client.report @item
+        assert_match "not found", log_output
       end
       
       def test_status_request_timeout
