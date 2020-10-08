@@ -5,10 +5,10 @@ Bundler.require
 require "new_relic/telemetry_sdk"
 
 unless ENV["API_KEY"]
-  raise "No License key supplied.  Export API_KEY environment variable!" 
+  raise "No API Key supplied.  Export API_KEY environment variable!" 
 end
 
-def setup_buffer_harvesting common_attributes = {test_attribute: 'example'}
+def setup_buffer_harvesting common_attributes = {host: 'fake_host'}
   @harvester = NewRelic::TelemetrySdk::Harvester.new 
   @span_client = NewRelic::TelemetrySdk::SpanClient.new
   # Creates a buffer with common attributes that will be added to all spans in the buffer
@@ -39,8 +39,8 @@ def record_external_request
   }
 
   span = NewRelic::TelemetrySdk::Span.new(
-    id: random_id(8),
-    trace_id: random_id(16),
+    id: random_id(16),
+    trace_id: random_id(32),
     start_time_ms: (start_time.to_i * 1000),
     duration_ms: (duration * 1000).to_i,
     name: "Net::HTTP#get",

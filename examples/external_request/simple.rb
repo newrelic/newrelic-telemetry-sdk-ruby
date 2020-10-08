@@ -2,7 +2,7 @@
 # at at time to the Trace API endpoint.  It will time how long it takes to retrive
 # an external URL's content and construct a span and send it to New Relic's server.
 # 
-# Usage: `API_KEY=<YOUR_API_KEY bundle exec ruby simple.rb`
+# Usage: `API_KEY=<YOUR_API_KEY> bundle exec ruby simple.rb`
 require 'net/http'
 require 'bundler'
 Bundler.require
@@ -14,7 +14,7 @@ unless ENV["API_KEY"]
   raise "No API Key supplied.  Export API_KEY environment variable!" 
 end
 
-# Just a random ID generator -- A string of 16 (by default) hexidemal digits.
+# Just a random ID generator -- A string of 16 (by default) hexadecimal digits.
 def random_id length=16
   length.times.map{rand(16).to_s(16)}.join
 end
@@ -45,8 +45,8 @@ def record_external_request
 
   # Construct the span and send it.
   span = NewRelic::TelemetrySdk::Span.new(
-    id: random_id(8),
-    trace_id: random_id(16),
+    id: random_id(16),
+    trace_id: random_id(32),
     start_time_ms: (start_time.to_i * 1000),
     duration_ms: (duration * 1000).to_i,
     name: "Net::HTTP#get",
