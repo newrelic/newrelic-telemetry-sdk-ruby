@@ -52,7 +52,7 @@ module NewRelic
 
       def harvest
         @lock.synchronize do
-          @harvestables.each do |harvestable|
+          @harvestables.values.each do |harvestable|
             process_harvestable harvestable
           end
         end
