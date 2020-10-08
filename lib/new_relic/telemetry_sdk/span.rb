@@ -17,8 +17,8 @@ module NewRelic
                     :service_name,
                     :custom_attributes
 
-      def initialize id: Util.generate_guid(8),
-                     trace_id: Util.generate_guid(16),
+      def initialize id: Util.generate_guid(16),
+                     trace_id: Util.generate_guid(32),
                      start_time_ms: Util.time_to_ms,
                      duration_ms: nil,
                      name: nil,
