@@ -5,6 +5,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'../../..','test_helper'))
 require 'new_relic/telemetry_sdk/clients/client'
+require 'logger'
 
 module NewRelic
   module TelemetrySdk
