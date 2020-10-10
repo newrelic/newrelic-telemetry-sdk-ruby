@@ -22,8 +22,13 @@ module NewRelic
         @client = Client.new(host: 'host', path: 'path', payload_type: :spans)
         @client.instance_variable_set(:@connection, @connection)
         @client.logger = ::Logger.new(@log_output = StringIO.new)
-        @sleep = @client.stubs(:sleep)
         @item = ItemStub.new
+      end
+
+      # Stups sleep in the client and expects it to never be called
+      def never_sleep 
+        @sleep = @client.stubs(:sleep)
+        @sleep.never
       end
 
       def log_output
@@ -53,46 +58,51 @@ module NewRelic
       end
 
       def test_status_ok
-        @sleep.never
+        never_sleep
         stub_server(200).once
 
         @client.report @item
       end
 
       def test_status_not_found
-        @sleep.never
+        never_sleep
         stub_server(404, "not found").once
         @client.report @item
         assert_match "not found", log_output
       end
       
       def test_status_request_timeout
-        @sleep.never
-        stub_server(408).once
+        never_sleep
+        # Returns 208 once and then 200 once, expects exactly 2 calls
+        stub_server(408).then.returns(stub_response 200).times(2)
         @client.report @item
       end
 
       def test_status_request_entity_too_large
-        @sleep.never
+        never_sleep
         stub_server(413).once
         @client.report @item
       end
 
       def test_status_request_too_many_requests
-        @sleep.never
-        stub_server(429).once
+        sleep_time = 42
+        # expects it to wait the given amount of seconds
+        @client.expects(:sleep).with(sleep_time).once
+        # Returns 429 once (with the amount of seconds to wait before trying again) and then 200 once, expects exactly 2 calls
+        stub_server(429, 'with Retry-After', { 'Retry-After' => sleep_time }).then.returns(stub_response 200).times(2)
         @client.report @item
       end
 
       def test_status_server_error
-        @sleep.never
+        # TODO: should retry based on backoff strategy
+        never_sleep
         stub_server(500).once
         @client.report @item
       end
 
-      def stub_server status, message = 'default message'
-        response = stub_response status, message
-        @connection.stubs(:post).returns response
+      def stub_server status, message = 'default message', headers = {}
+        response = stub_response status, message, headers
+        @connection.expects(:post).returns response
       end
 
       def stub_response status, message = 'default message', headers = {}
