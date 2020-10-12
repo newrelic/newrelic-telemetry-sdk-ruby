@@ -69,8 +69,8 @@ module NewRelic
         end
       end
 
-      def calculate_backoff_strategy
-        [@backoff_max, (@backoff_factor * (2**(@connection_attempts-1)).to_i)].min
+      def calculate_backoff_strategy connection_attempts = @connection_attempts, backoff_factor = @backoff_factor, backoff_max = @backoff_max
+        [backoff_max, (backoff_factor * (2**(connection_attempts-1)).to_i)].min
       end
 
       def backoff_strategy
