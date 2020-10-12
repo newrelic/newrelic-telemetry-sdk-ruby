@@ -94,9 +94,13 @@ module NewRelic
       end
 
       def test_status_server_error
-        # TODO: should retry based on backoff strategy
-        never_sleep
-        stub_server(500).once
+        sleep_time = 42
+        # makes sure that it is sleeping for the amount of time returned by the backoff calculation
+        @client.expects(:calculate_backoff_strategy).then.returns(sleep_time).once
+        @client.expects(:sleep).with(sleep_time).once
+
+        stub_server(500).then.returns(stub_response 200).times(2)
+
         @client.report @item
       end
 
