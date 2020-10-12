@@ -14,7 +14,11 @@ module NewRelic
       def test_required_attributes
         span = Span.new
         assert span.id.is_a? String
+        assert_equal 16, span.id.length
+
         assert span.trace_id.is_a? String
+        assert_equal 32, span.trace_id.length
+
         assert span.start_time_ms.is_a? Integer
       end
 
