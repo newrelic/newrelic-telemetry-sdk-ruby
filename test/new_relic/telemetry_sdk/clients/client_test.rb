@@ -149,14 +149,14 @@ module NewRelic
         @client.instance_variable_set(:@max_retries, 5)
         @client.instance_variable_set(:@connection_attempts, 4)
         assert_raises NewRelic::TelemetrySdk::ServerConnectionException do 
-          @client.log_and_retry_with_backoff(mock, mock)
+          @client.log_and_retry_with_backoff(stub_response(413), mock)
         end
       end
 
       def test_reaching_max_attempts_stops_retrying
         @client.instance_variable_set(:@max_retries, 5)
         @client.instance_variable_set(:@connection_attempts, 5)
-        @client.log_and_retry_with_backoff(mock, mock)
+        @client.log_and_retry_with_backoff(stub_response(413), mock)
       end
 
       def test_splitting_payload
@@ -164,7 +164,7 @@ module NewRelic
         data = [1, 2, 3, 4]
         @client.expects(:report_batch).with([[1,2],common])
         @client.expects(:report_batch).with([[3,4],common])
-        @client.log_and_split_payload mock, data, common
+        @client.log_and_split_payload stub_response(413), data, common
       end
 
       def test_splitting_odd_payload
@@ -172,7 +172,7 @@ module NewRelic
         data = [1, 2, 3, 4, 5]
         @client.expects(:report_batch).with([[1,2,3],common])
         @client.expects(:report_batch).with([[4,5],common])
-        @client.log_and_split_payload mock, data, common
+        @client.log_and_split_payload stub_response(413), data, common
       end
 
     end

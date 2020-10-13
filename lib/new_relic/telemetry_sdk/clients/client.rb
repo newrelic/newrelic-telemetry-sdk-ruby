@@ -41,13 +41,14 @@ module NewRelic
       end
 
       def log_and_retry response, post_body
-        # TODO: log each time
+        logger.error response.message
         raise NewRelic::TelemetrySdk::ServerConnectionException
       end
 
       def log_and_retry_later response, post_body
-        # TODO: log each time
-        wait_time = response['Retry-After'].to_i # do we 
+        wait_time = response['Retry-After'].to_i 
+        logger.error "Connection error. Will attempt to retry in #{wait_time} seconds"
+        logger.error response.message
         sleep wait_time
         raise NewRelic::TelemetrySdk::ServerConnectionException
       end
@@ -57,7 +58,8 @@ module NewRelic
       end
 
       def log_and_split_payload response, data, common_attributes
-        # TODO: log response
+        logger.error "Payload too large. Splitting payload in half and attempting to resend."
+        logger.error response.message
         # splits the data in half and calls report_batch for each half
         data1, data2 = data.each_slice((data.size/2.0).round).to_a
         report_batch [data1, common_attributes]
@@ -66,11 +68,13 @@ module NewRelic
       
       def log_and_retry_with_backoff response, post_body
         if @connection_attempts < @max_retries
-          # TODO: log each time
-          sleep backoff_strategy 
+          wait = backoff_strategy
+          logger.error "Connection error. Will attempt to retry in #{wait} seconds."
+          logger.error response.message
+          sleep wait
           raise NewRelic::TelemetrySdk::ServerConnectionException
         else 
-          # TODO: log 
+          logger.error "Maximum retries reached. Dropping data."
         end
       end
 
