@@ -148,7 +148,7 @@ module NewRelic
         @client.expects(:backoff_strategy).then.returns(0).once
         @client.instance_variable_set(:@max_retries, 5)
         @client.instance_variable_set(:@connection_attempts, 4)
-        assert_raises NewRelic::TelemetrySdk::ServerConnectionException do 
+        assert_raises NewRelic::TelemetrySdk::RetriableServerResponseException do 
           @client.log_and_retry_with_backoff(stub_response(413), [mock])
         end
       end

@@ -5,6 +5,6 @@
 
 module NewRelic
   module TelemetrySdk
-    class ServerConnectionException < StandardError; end
+    class RetriableServerResponseException < StandardError; end
   end
 end

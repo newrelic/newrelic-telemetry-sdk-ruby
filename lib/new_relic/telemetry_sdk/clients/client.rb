@@ -42,15 +42,15 @@ module NewRelic
 
       def log_and_retry response
         logger.error response.message
-        raise NewRelic::TelemetrySdk::ServerConnectionException
+        raise NewRelic::TelemetrySdk::RetriableServerResponseException
       end
 
       def log_and_retry_later response
         wait_time = response['Retry-After'].to_i 
-        logger.error "Connection error. Will attempt to retry in #{wait_time} seconds"
+        logger.error "Connection error. Retrying in #{wait_time} seconds"
         logger.error response.message
         sleep wait_time
-        raise NewRelic::TelemetrySdk::ServerConnectionException
+        raise NewRelic::TelemetrySdk::RetriableServerResponseException
       end
 
       def log_once_and_drop_data response, data
@@ -70,10 +70,10 @@ module NewRelic
       def log_and_retry_with_backoff response, data
         if @connection_attempts < @max_retries
           wait = backoff_strategy
-          logger.error "Connection error. Will attempt to retry in #{wait} seconds."
+          logger.error "Connection error. Retrying in #{wait} seconds."
           logger.error response.message
           sleep wait
-          raise NewRelic::TelemetrySdk::ServerConnectionException
+          raise NewRelic::TelemetrySdk::RetriableServerResponseException
         else 
           logger.error "Maximum retries reached. Dropping data: #{data.size} points of data"
         end
@@ -130,7 +130,7 @@ module NewRelic
           log_and_retry_with_backoff response, data
         end
 
-      rescue NewRelic::TelemetrySdk::ServerConnectionException
+      rescue NewRelic::TelemetrySdk::RetriableServerResponseException
         retry
       end
       end
