@@ -40,12 +40,12 @@ module NewRelic
         report_batch [[item.to_h], nil]
       end
 
-      def log_and_retry response, post_body
+      def log_and_retry response
         logger.error response.message
         raise NewRelic::TelemetrySdk::ServerConnectionException
       end
 
-      def log_and_retry_later response, post_body
+      def log_and_retry_later response
         wait_time = response['Retry-After'].to_i 
         logger.error "Connection error. Will attempt to retry in #{wait_time} seconds"
         logger.error response.message
@@ -53,8 +53,9 @@ module NewRelic
         raise NewRelic::TelemetrySdk::ServerConnectionException
       end
 
-      def log_once_and_drop_data response
+      def log_once_and_drop_data response, data
         log_error_once response.class, response.message
+        logger.error "Connection error. Dropping data: #{data.size} points of data"
       end
 
       def log_and_split_payload response, data, common_attributes
@@ -66,7 +67,7 @@ module NewRelic
         report_batch [data2, common_attributes]
       end
       
-      def log_and_retry_with_backoff response, post_body
+      def log_and_retry_with_backoff response, data
         if @connection_attempts < @max_retries
           wait = backoff_strategy
           logger.error "Connection error. Will attempt to retry in #{wait} seconds."
@@ -74,7 +75,7 @@ module NewRelic
           sleep wait
           raise NewRelic::TelemetrySdk::ServerConnectionException
         else 
-          logger.error "Maximum retries reached. Dropping data."
+          logger.error "Maximum retries reached. Dropping data: #{data.size} points of data"
         end
       end
 
@@ -114,19 +115,19 @@ module NewRelic
             Net::HTTPConflict, # 409
             Net::HTTPGone, # 410
             Net::HTTPLengthRequired  # 411
-          log_once_and_drop_data response
+          log_once_and_drop_data response, data
   
         when Net::HTTPRequestTimeOut # 408
-          log_and_retry response, post_body
+          log_and_retry response
 
         when Net::HTTPRequestEntityTooLarge # 413
           log_and_split_payload response, data, common_attributes
         
         when Net::HTTPTooManyRequests # 429
-          log_and_retry_later response, post_body
+          log_and_retry_later response
 
         else
-          log_and_retry_with_backoff response, post_body
+          log_and_retry_with_backoff response, data
         end
 
       rescue NewRelic::TelemetrySdk::ServerConnectionException

@@ -149,14 +149,14 @@ module NewRelic
         @client.instance_variable_set(:@max_retries, 5)
         @client.instance_variable_set(:@connection_attempts, 4)
         assert_raises NewRelic::TelemetrySdk::ServerConnectionException do 
-          @client.log_and_retry_with_backoff(stub_response(413), mock)
+          @client.log_and_retry_with_backoff(stub_response(413), [mock])
         end
       end
 
       def test_reaching_max_attempts_stops_retrying
         @client.instance_variable_set(:@max_retries, 5)
         @client.instance_variable_set(:@connection_attempts, 5)
-        @client.log_and_retry_with_backoff(stub_response(413), mock)
+        @client.log_and_retry_with_backoff(stub_response(413), [mock])
       end
 
       def test_splitting_payload
