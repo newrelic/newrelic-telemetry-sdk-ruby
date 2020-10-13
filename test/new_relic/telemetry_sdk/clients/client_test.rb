@@ -94,7 +94,8 @@ module NewRelic
 
       def test_status_request_entity_too_large
         never_sleep
-        stub_server(413).once
+        # payload too large, then splits and stubs 200 response for each half
+        stub_server(413).then.returns(stub_response 200).then.returns(stub_response 200).times(3)
         @client.report @item
       end
 
@@ -156,6 +157,22 @@ module NewRelic
         @client.instance_variable_set(:@max_retries, 5)
         @client.instance_variable_set(:@connection_attempts, 5)
         @client.log_and_retry_with_backoff(mock, mock)
+      end
+
+      def test_splitting_payload
+        common = [test: 'test']
+        data = [1, 2, 3, 4]
+        @client.expects(:report_batch).with([[1,2],common])
+        @client.expects(:report_batch).with([[3,4],common])
+        @client.log_and_split_payload mock, data, common
+      end
+
+      def test_splitting_odd_payload
+        common = [test: 'test']
+        data = [1, 2, 3, 4, 5]
+        @client.expects(:report_batch).with([[1,2,3],common])
+        @client.expects(:report_batch).with([[4,5],common])
+        @client.log_and_split_payload mock, data, common
       end
 
     end

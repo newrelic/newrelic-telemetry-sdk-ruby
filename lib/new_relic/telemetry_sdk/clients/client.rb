@@ -57,6 +57,11 @@ module NewRelic
       end
 
       def log_and_split_payload response, data, common_attributes
+        # TODO: log response
+        # splits the data in half and calls report_batch for each half
+        data1, data2 = data.each_slice((data.size/2.0).round).to_a
+        report_batch [data1, common_attributes]
+        report_batch [data2, common_attributes]
       end
       
       def log_and_retry_with_backoff response, post_body
