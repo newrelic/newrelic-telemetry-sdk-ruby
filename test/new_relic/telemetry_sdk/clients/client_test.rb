@@ -92,6 +92,35 @@ module NewRelic
         @client.report @item
       end
 
+      def client_headers
+        @client.instance_variable_get("@headers")
+      end
+
+      def test_user_agent_header_basics
+        assert_match(/^NewRelic-Ruby-TelemetrySDK\/[\d|\.]+$/, client_headers[:'User-Agent'])
+        @client.add_user_agent_product "foo"
+        assert_match(/^NewRelic-Ruby-TelemetrySDK\/[\d|\.]+\sfoo$/, client_headers[:'User-Agent'])
+        @client.add_user_agent_product "bar", "5.0"
+        assert_match(/^NewRelic-Ruby-TelemetrySDK\/[\d|\.]+\sfoo\sbar\/5\.0$/, client_headers[:'User-Agent'])
+      end
+
+      def test_user_agent_header_rejects_invalid_product_token
+        @client.add_user_agent_product "(foo)" # parentheses not allowed!
+        assert_match(/^NewRelic-Ruby-TelemetrySDK\/[\d|\.]+$/, client_headers[:'User-Agent'])
+      end
+
+      def test_user_agent_header_ignores_invalid_product_version_token
+        @client.add_user_agent_product "foo", "(5.0)" # parentheses not allowed!
+        assert_match(/^NewRelic-Ruby-TelemetrySDK\/[\d|\.]+\sfoo$/, client_headers[:'User-Agent'])
+      end
+
+      def test_user_agent_header_double_entry_ignored
+        @client.add_user_agent_product "bar", "5.0"
+        @client.add_user_agent_product "bar", "5.0"
+        assert_match(/^NewRelic-Ruby-TelemetrySDK\/[\d|\.]+\sbar\/5\.0$/, client_headers[:'User-Agent'])
+      end
+
+
       def test_status_request_entity_too_large_splittable
         never_sleep
         # payload too large, then splits and stubs 200 response for each half
