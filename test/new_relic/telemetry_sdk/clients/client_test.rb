@@ -92,10 +92,17 @@ module NewRelic
         @client.report @item
       end
 
-      def test_status_request_entity_too_large
+      def test_status_request_entity_too_large_splittable
         never_sleep
         # payload too large, then splits and stubs 200 response for each half
         stub_server(413).then.returns(stub_response 200).then.returns(stub_response 200).times(3)
+        @client.report_batch [[@item, @item], nil]
+      end
+
+      def test_status_request_entity_too_large_not_splittable
+        never_sleep
+        # payload too large, then splits and stubs 200 response for each half
+        stub_server(413).once
         @client.report @item
       end
 
@@ -174,6 +181,13 @@ module NewRelic
         data = [1, 2, 3, 4, 5]
         @client.expects(:report_batch).with([[1,2,3],common])
         @client.expects(:report_batch).with([[4,5],common])
+        @client.log_and_split_payload stub_response(413), data, common
+      end
+
+      def test_splitting_payload_of_one
+        common = [test: 'test']
+        data = []
+        @client.expects(:report_batch).never
         @client.log_and_split_payload stub_response(413), data, common
       end
 
