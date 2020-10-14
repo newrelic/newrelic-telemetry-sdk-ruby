@@ -62,9 +62,9 @@ module NewRelic
         logger.error "Payload too large. Splitting payload in half and attempting to resend."
         logger.error response.message
         # splits the data in half and calls report_batch for each half
-        data1, data2 = data.each_slice((data.size/2.0).round).to_a
-        report_batch [data1, common_attributes]
-        report_batch [data2, common_attributes]
+        midpoint = data.size/2.0
+        report_batch [data.first(midpoint.ceil), common_attributes]
+        report_batch [data.last(midpoint.floor), common_attributes]
       end
       
       def log_and_retry_with_backoff response, data
