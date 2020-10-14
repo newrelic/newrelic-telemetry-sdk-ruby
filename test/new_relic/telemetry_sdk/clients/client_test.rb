@@ -25,7 +25,7 @@ module NewRelic
         @item = ItemStub.new
       end
 
-      # Stups sleep in the client and expects it to never be called
+      # Stubs sleep in the client and expects it to never be called
       def never_sleep 
         @sleep = @client.stubs(:sleep)
         @sleep.never
@@ -87,7 +87,7 @@ module NewRelic
       
       def test_status_request_timeout
         never_sleep
-        # Returns 208 once and then 200 once, expects exactly 2 calls
+        # Returns 408 once and then 200 once, expects exactly 2 calls
         stub_server(408).then.returns(stub_response 200).times(2)
         @client.report @item
       end
