@@ -50,6 +50,8 @@ module NewRelic
         @harvest_thread.join if @running
       end
 
+    private
+
       def harvest
         @lock.synchronize do
           @harvestables.values.each do |harvestable|

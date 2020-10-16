@@ -41,7 +41,7 @@ module NewRelic
         harvester.register 'test2', buffer, client
 
         Harvester.any_instance.expects(:process_harvestable).times(2)
-        harvester.harvest
+        harvester.send(:harvest)
       end
 
       # process_harvestable calles correct functions on buffer and client objects
@@ -54,7 +54,7 @@ module NewRelic
         buffer.expects(:flush).returns(flushed_buffer).once
         client.expects(:report_batch).once
 
-        harvester.process_harvestable ({buffer: buffer, client: client})
+        harvester.send(:process_harvestable, {buffer: buffer, client: client})
       end
 
       def test_process_harvestable_without_data
@@ -66,7 +66,7 @@ module NewRelic
         buffer.expects(:flush).returns(flushed_buffer).once
         client.expects(:report_batch).never
 
-        harvester.process_harvestable ({buffer: buffer, client: client})
+        harvester.send(:process_harvestable, {buffer: buffer, client: client})
       end
 
       def test_starts_stops_harvest_thread 
