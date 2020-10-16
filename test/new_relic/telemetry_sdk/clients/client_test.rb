@@ -5,6 +5,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'../../..','test_helper'))
 require 'new_relic/telemetry_sdk/clients/client'
+require 'logger'
 
 module NewRelic
   module TelemetrySdk
@@ -20,8 +21,33 @@ module NewRelic
         @connection = stub
         @client = Client.new(host: 'host', path: 'path', payload_type: :spans)
         @client.instance_variable_set(:@connection, @connection)
-        @sleep = @client.stubs(:sleep)
+        @client.logger = ::Logger.new(@log_output = StringIO.new)
         @item = ItemStub.new
+      end
+
+      # Stubs sleep in the client and expects it to never be called
+      def never_sleep 
+        @sleep = @client.stubs(:sleep)
+        @sleep.never
+      end
+
+      def log_output
+        @log_output.rewind
+        @log_output.read
+      end
+
+      def stub_server status, message = 'default message', headers = {}
+        response = stub_response status, message, headers
+        @connection.expects(:post).returns response
+      end
+
+      def stub_response status, message = 'default message', headers = {}
+        code = status.to_s
+        response = Net::HTTPResponse::CODE_TO_OBJ[code].new '1.1', code, message
+        headers.each do |key, value|
+          response.add_field key, value
+        end
+        response
       end
 
       # We should be using the common format for payloads as described here:
@@ -46,25 +72,125 @@ module NewRelic
       end
 
       def test_status_ok
-        @sleep.never
+        never_sleep
         stub_server(200).once
 
         @client.report @item
       end
 
-      def stub_server status, message = 'default message'
-        response = stub_response status, message
-        @connection.stubs(:post).returns response
+      def test_status_not_found
+        never_sleep
+        stub_server(404, "not found").once
+        @client.report @item
+        assert_match "not found", log_output
+      end
+      
+      def test_status_request_timeout
+        never_sleep
+        # Returns 408 once and then 200 once, expects exactly 2 calls
+        stub_server(408).then.returns(stub_response 200).times(2)
+        @client.report @item
       end
 
-      def stub_response status, message = 'default message', headers = {}
-        code = status.to_s
-        response = Net::HTTPResponse::CODE_TO_OBJ[code].new '1.1', code, message
-        headers.each do |key, value|
-          response.add_field key, value
-        end
-        response
+      def test_status_request_entity_too_large_splittable
+        never_sleep
+        # payload too large, then splits and stubs 200 response for each half
+        stub_server(413).then.returns(stub_response 200).then.returns(stub_response 200).times(3)
+        @client.report_batch [[@item, @item], nil]
       end
+
+      def test_status_request_entity_too_large_not_splittable
+        never_sleep
+        # payload too large, then splits and stubs 200 response for each half
+        stub_server(413).once
+        @client.report @item
+      end
+
+      def test_status_request_too_many_requests
+        sleep_time = 42
+        # expects it to wait the given amount of seconds
+        @client.expects(:sleep).with(sleep_time).once
+        # Returns 429 once (with the amount of seconds to wait before trying again) and then 200 once, expects exactly 2 calls
+        stub_server(429, 'with Retry-After', { 'Retry-After' => sleep_time }).then.returns(stub_response 200).times(2)
+        @client.report @item
+      end
+
+      def test_status_server_error
+        sleep_time = 42
+        # makes sure that it is sleeping for the amount of time returned by the backoff calculation
+        @client.expects(:calculate_backoff_strategy).then.returns(sleep_time).once
+        @client.expects(:sleep).with(sleep_time).once
+
+        stub_server(500).then.returns(stub_response 200).times(2)
+
+        @client.report @item
+      end
+
+      def test_backoff_calculation
+        # example numbers from the spec
+        expected =  [0, 1, 2, 4, 8, 16, 16, 16]
+        max_time = 16
+        factor = 1
+        (0..7).each do |attempt|
+          assert_equal expected[attempt], @client.calculate_backoff_strategy(attempt, factor, max_time)
+        end
+        # more examples from the spec
+        expected =  [0, 5, 10, 20, 40, 80, 80, 80]
+        max_time = 80
+        factor = 5
+        (0..7).each do |attempt|
+          assert_equal expected[attempt], @client.calculate_backoff_strategy(attempt, factor, max_time)
+        end
+      end
+
+      def test_backoff_strategy_increments_attempts
+        time = 13
+        @client.expects(:calculate_backoff_strategy).then.returns(time).once
+        attempts = @client.instance_variable_get(:@connection_attempts)
+        assert_equal time, @client.backoff_strategy
+        assert_equal attempts+1, @client.instance_variable_get(:@connection_attempts)
+      end
+
+      def test_raises_before_max_retries
+        @client.expects(:backoff_strategy).then.returns(0).once
+        @client.instance_variable_set(:@max_retries, 5)
+        @client.instance_variable_set(:@connection_attempts, 4)
+        # Retry raises an exception, so we want the exception raised here
+        assert_raises NewRelic::TelemetrySdk::RetriableServerResponseException do 
+          @client.log_and_retry_with_backoff(stub_response(413), [mock])
+        end
+      end
+
+      def test_reaching_max_attempts_stops_retrying
+        @client.instance_variable_set(:@max_retries, 5)
+        @client.instance_variable_set(:@connection_attempts, 5)
+        # Retrying raises an exception, so we want to make sure there is no exception raised here
+        @client.log_and_retry_with_backoff(stub_response(413), [mock])
+      end
+
+      def test_splitting_payload
+        common = [test: 'test']
+        data = [1, 2, 3, 4]
+        @client.expects(:report_batch).with([[1,2],common])
+        @client.expects(:report_batch).with([[3,4],common])
+        @client.log_and_split_payload stub_response(413), data, common
+      end
+
+      def test_splitting_odd_payload
+        common = [test: 'test']
+        data = [1, 2, 3, 4, 5]
+        @client.expects(:report_batch).with([[1,2,3],common])
+        @client.expects(:report_batch).with([[4,5],common])
+        @client.log_and_split_payload stub_response(413), data, common
+      end
+
+      def test_splitting_payload_of_one
+        common = [test: 'test']
+        data = []
+        @client.expects(:report_batch).never
+        @client.log_and_split_payload stub_response(413), data, common
+      end
+
     end
   end
 end
