@@ -34,6 +34,9 @@ module NewRelic
       def report item
         # Report a batch of one pre-transformed item with no common attributes
         report_batch [[item.to_h], nil]
+      rescue => e
+        logger.error e.to_s
+        logger.error "Encountered error. Dropping data: 1 point of data"
       end
 
       def report_batch batch_data
@@ -47,7 +50,15 @@ module NewRelic
         @headers[:'x-request-id'] = SecureRandom.uuid
 
         post_body = format_payload data, common_attributes
-      begin
+        send_with_response_handling post_body, data, common_attributes
+        rescue => e
+          logger.error "Encountered error. Dropping data: #{data.size} points of data"
+          logger.error e.to_s
+      end
+
+    private
+
+      def send_with_response_handling post_body, data, common_attributes
         response = send_request post_body
 
         case response
@@ -80,10 +91,7 @@ module NewRelic
       rescue NewRelic::TelemetrySdk::RetriableServerResponseException
         retry
       end
-      end
-
-    private
-
+      
       def send_request body
         body = serialize body
         body = gzip_data body if @gzip_request

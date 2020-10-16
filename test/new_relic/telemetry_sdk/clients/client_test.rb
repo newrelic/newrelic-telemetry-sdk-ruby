@@ -220,6 +220,22 @@ module NewRelic
         @client.send(:log_and_split_payload, stub_response(413), data, common)
       end
 
+      def test_report_batch_never_raises_error
+        @client.stubs(:format_payload).raises(StandardError.new('pretend_error'))
+        # if an error bubbles up here, test fails
+        @client.report_batch [[@item, @item], nil]
+        assert_match /Encountered error./, log_output
+        assert_match /pretend_error/, log_output
+      end
+
+      def test_report_never_raises_error
+        @client.stubs(:report_batch).raises(StandardError.new('pretend_error'))
+        # if an error bubbles up here, test fails
+        @client.report @item
+        assert_match /Encountered error./, log_output
+        assert_match /pretend_error/, log_output
+      end
+
     end
   end
 end
