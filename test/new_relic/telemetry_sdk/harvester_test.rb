@@ -10,6 +10,11 @@ module NewRelic
   module TelemetrySdk
     class HarvesterTest < Minitest::Test
 
+      def log_output
+        @log_output.rewind
+        @log_output.read
+      end
+
       # default interval is 5 seconds
       def test_default_interval
         harvester = Harvester.new 
@@ -95,21 +100,22 @@ module NewRelic
 
       def test_harvester_interval_runs
         harvester = Harvester.new 42
+        harvester.logger = ::Logger.new(@log_output = StringIO.new)
 
         # calls sleep 3 times with the custom interval of 42
         harvester.expects(:sleep).with(42).times(3)
         # Calls harvest 3 times and raises an error the 3rd time
         harvester.expects(:harvest).returns(nil) \
           .then.returns(nil) \
-          .then.raises(RuntimeError.new) \
+          .then.raises(RuntimeError.new('pretend error')) \
           .times(3)
 
-        Thread.report_on_exception = false
-        assert_raises(RuntimeError) do 
-          thread = harvester.start
-          thread.join
-        end
-        Thread.report_on_exception = true
+        # exception should not bubble up to here
+        thread = harvester.start
+        thread.join
+        # checks logs to ensure the error being raised is logged
+        assert_match(/Encountered error in harvester/, log_output)
+        assert_match(/pretend error/, log_output)
       end
 
     end
