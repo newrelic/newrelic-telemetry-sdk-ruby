@@ -31,15 +31,63 @@ module NewRelic
         @backoff_max = 80 # based on config
       end
 
+      def report item
+        # Report a batch of one pre-transformed item with no common attributes
+        report_batch [[item.to_h], nil]
+      end
+
+      def report_batch batch_data
+        # We need to generate a version 4 uuid that will
+        # be used for each unique batch, including on retries.
+        # If a batch is split due to a 413 response,
+        # each smaller batch should have its own.
+
+        data, common_attributes = batch_data
+
+        @headers[:'x-request-id'] = SecureRandom.uuid
+
+        post_body = format_payload data, common_attributes
+      begin
+        response = send_request post_body
+
+        case response
+        when Net::HTTPSuccess # 200 - 299
+          @connection_attempts = 0 # reset count after sucessful connection
+        
+        when Net::HTTPBadRequest, # 400
+            Net::HTTPUnauthorized, # 401
+            Net::HTTPForbidden, # 403
+            Net::HTTPNotFound, # 404
+            Net::HTTPMethodNotAllowed, # 405
+            Net::HTTPConflict, # 409
+            Net::HTTPGone, # 410
+            Net::HTTPLengthRequired  # 411
+          log_once_and_drop_data response, data
+  
+        when Net::HTTPRequestTimeOut # 408
+          log_and_retry response
+
+        when Net::HTTPRequestEntityTooLarge # 413
+          log_and_split_payload response, data, common_attributes
+        
+        when Net::HTTPTooManyRequests # 429
+          log_and_retry_later response
+
+        else
+          log_and_retry_with_backoff response, data
+        end
+
+      rescue NewRelic::TelemetrySdk::RetriableServerResponseException
+        retry
+      end
+      end
+
+    private
+
       def send_request body
         body = serialize body
         body = gzip_data body if @gzip_request
         @connection.post @path, body, @headers
-      end
-
-      def report item
-        # Report a batch of one pre-transformed item with no common attributes
-        report_batch [[item.to_h], nil]
       end
 
       def log_and_retry response
@@ -96,52 +144,6 @@ module NewRelic
         wait = calculate_backoff_strategy
         @connection_attempts += 1
         wait 
-      end
-
-      def report_batch batch_data
-        # We need to generate a version 4 uuid that will
-        # be used for each unique batch, including on retries.
-        # If a batch is split due to a 413 response,
-        # each smaller batch should have its own.
-
-        data, common_attributes = batch_data
-
-        @headers[:'x-request-id'] = SecureRandom.uuid
-
-        post_body = format_payload data, common_attributes
-      begin
-        response = send_request post_body
-
-        case response
-        when Net::HTTPSuccess # 200 - 299
-          @connection_attempts = 0 # reset count after sucessful connection
-        
-        when Net::HTTPBadRequest, # 400
-            Net::HTTPUnauthorized, # 401
-            Net::HTTPForbidden, # 403
-            Net::HTTPNotFound, # 404
-            Net::HTTPMethodNotAllowed, # 405
-            Net::HTTPConflict, # 409
-            Net::HTTPGone, # 410
-            Net::HTTPLengthRequired  # 411
-          log_once_and_drop_data response, data
-  
-        when Net::HTTPRequestTimeOut # 408
-          log_and_retry response
-
-        when Net::HTTPRequestEntityTooLarge # 413
-          log_and_split_payload response, data, common_attributes
-        
-        when Net::HTTPTooManyRequests # 429
-          log_and_retry_later response
-
-        else
-          log_and_retry_with_backoff response, data
-        end
-
-      rescue NewRelic::TelemetrySdk::RetriableServerResponseException
-        retry
-      end
       end
 
       def format_payload data, common_attributes
