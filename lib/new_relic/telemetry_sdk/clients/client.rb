@@ -51,9 +51,9 @@ module NewRelic
 
         post_body = format_payload data, common_attributes
         send_with_response_handling post_body, data, common_attributes
-        rescue => e
-          logger.error "Encountered error. Dropping data: #{data.size} points of data"
-          logger.error e.to_s
+      rescue => e
+        logger.error "Encountered error. Dropping data: #{data.size} points of data"
+        logger.error e.to_s
       end
 
     private
