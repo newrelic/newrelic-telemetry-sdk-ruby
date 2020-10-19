@@ -53,7 +53,7 @@ module NewRelic
         send_with_response_handling post_body, data, common_attributes
       rescue => e
         logger.error "Encountered error. Dropping data: #{data.size} points of data"
-        logger.error e.to_s
+        logger.error e
       end
 
       def add_user_agent_product product, version=nil
@@ -78,6 +78,9 @@ module NewRelic
           @user_agent_products << entry
           add_user_agent_header @headers
         end
+      rescue => e
+        logger.error "Encountered error adding user agent product"
+        logger.error e
       end
 
     private
