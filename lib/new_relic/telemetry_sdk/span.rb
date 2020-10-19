@@ -38,6 +38,9 @@ module NewRelic
 
       def finish end_time_ms: Util.time_to_ms
         @duration_ms = end_time_ms - @start_time_ms
+      rescue => e
+        logger.error "Encountered error in span"
+        logger.error e
       end
 
       def to_h
@@ -56,6 +59,9 @@ module NewRelic
         data[:attributes].merge! @custom_attributes if @custom_attributes
 
         data
+      rescue => e
+        logger.error "Encountered error in span"
+        logger.error e
       end
     end
   end
