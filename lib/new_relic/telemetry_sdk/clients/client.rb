@@ -158,13 +158,13 @@ module NewRelic
       def add_user_agent_product product, version=nil
         # The product token must be valid to add to the headers
         if product !~ RFC7230_TOKEN
-          # log_once :warn, "product is not a valid RFC 7230 token"
+          log_once :warn, "Product is not a valid RFC 7230 token"
           return
         end
 
         # The version is ignored if invalid
         if version && version !~ RFC7230_TOKEN
-          # log_once :warn, "product version is not a valid RFC 7230 token"
+          log_once :warn, "Product version is not a valid RFC 7230 token"
           version = nil
         end
 
