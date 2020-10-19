@@ -56,6 +56,30 @@ module NewRelic
         logger.error e.to_s
       end
 
+      def add_user_agent_product product, version=nil
+        # The product token must be valid to add to the headers
+        if product !~ RFC7230_TOKEN
+          log_once :warn, "Product is not a valid RFC 7230 token"
+          return
+        end
+
+        # The version is ignored if invalid
+        if version && version !~ RFC7230_TOKEN
+          log_once :warn, "Product version is not a valid RFC 7230 token"
+          version = nil
+        end
+
+        entry = [product, version].compact.join("/")
+
+        # adds the product entry and updates the combined user agent 
+        # header, ignoring duplicate product entries.
+        @user_agent_products ||= []
+        unless @user_agent_products.include? entry
+          @user_agent_products << entry
+          add_user_agent_header @headers
+        end
+      end
+
     private
 
       def send_with_response_handling post_body, data, common_attributes
@@ -163,30 +187,6 @@ module NewRelic
         end
 
         [post_body]
-      end
-
-      def add_user_agent_product product, version=nil
-        # The product token must be valid to add to the headers
-        if product !~ RFC7230_TOKEN
-          log_once :warn, "Product is not a valid RFC 7230 token"
-          return
-        end
-
-        # The version is ignored if invalid
-        if version && version !~ RFC7230_TOKEN
-          log_once :warn, "Product version is not a valid RFC 7230 token"
-          version = nil
-        end
-
-        entry = [product, version].compact.join("/")
-
-        # adds the product entry and updates the combined user agent 
-        # header, ignoring duplicate product entries.
-        @user_agent_products ||= []
-        unless @user_agent_products.include? entry
-          @user_agent_products << entry
-          add_user_agent_header @headers
-        end
       end
 
       def add_user_agent_header headers
