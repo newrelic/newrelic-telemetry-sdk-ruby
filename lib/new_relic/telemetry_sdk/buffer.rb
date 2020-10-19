@@ -18,6 +18,9 @@ module NewRelic
       # Items recorded into the buffer must have a to_h method for transformation
       def record item
         @lock.synchronize { @items << item }
+      rescue => e
+        logger.error "Encountered error in buffer"
+        logger.error e
       end
 
       def flush
@@ -28,6 +31,9 @@ module NewRelic
         end
         data.map!(&:to_h)
         return data, @common_attributes
+      rescue => e
+        logger.error "Encountered error in buffer"
+        logger.error e
       end
     end
   end
