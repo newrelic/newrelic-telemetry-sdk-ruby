@@ -2,6 +2,5 @@ $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 require "new_relic/telemetry_sdk"
 
 require "minitest/autorun"
-require "mocha/setup"
+require "mocha/minitest"
 require "timecop"
-require "mocha/setup"

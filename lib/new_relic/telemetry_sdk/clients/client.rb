@@ -22,6 +22,8 @@ module NewRelic
         @headers = headers
         @gzip_request = use_gzip
         @payload_type = payload_type
+        @user_agent_products = nil
+        add_user_agent_header @headers
         add_content_encoding_header @headers if @gzip_request
         @connection_attempts = 0
         @max_retries= 8 # based on config
@@ -151,6 +153,35 @@ module NewRelic
         end
 
         [post_body]
+      end
+
+      def add_user_agent_product product, version=nil
+        # The product token must be valid to add to the headers
+        if product !~ RFC7230_TOKEN
+          log_once :warn, "Product is not a valid RFC 7230 token"
+          return
+        end
+
+        # The version is ignored if invalid
+        if version && version !~ RFC7230_TOKEN
+          log_once :warn, "Product version is not a valid RFC 7230 token"
+          version = nil
+        end
+
+        entry = [product, version].compact.join("/")
+
+        # adds the product entry and updates the combined user agent 
+        # header, ignoring duplicate product entries.
+        @user_agent_products ||= []
+        unless @user_agent_products.include? entry
+          @user_agent_products << entry
+          add_user_agent_header @headers
+        end
+      end
+
+      def add_user_agent_header headers
+        sdk_id = "#{USER_AGENT_NAME}/#{VERSION}"
+        headers[:'User-Agent'] = ([sdk_id] + Array(@user_agent_products)).join(" ")
       end
 
       def add_content_encoding_header headers
