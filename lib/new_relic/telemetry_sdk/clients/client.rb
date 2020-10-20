@@ -35,8 +35,8 @@ module NewRelic
         # Report a batch of one pre-transformed item with no common attributes
         report_batch [[item.to_h], nil]
       rescue => e
-        logger.error e.to_s
-        logger.error "Encountered error. Dropping data: 1 point of data"
+        logger.error "Encountered error reporting item in client. Dropping data: 1 point of data"
+        logger.error e
       end
 
       def report_batch batch_data
@@ -52,7 +52,7 @@ module NewRelic
         post_body = format_payload data, common_attributes
         send_with_response_handling post_body, data, common_attributes
       rescue => e
-        logger.error "Encountered error. Dropping data: #{data.size} points of data"
+        logger.error "Encountered error reporting batch in client. Dropping data: #{data.size} points of data"
         logger.error e
       end
 
