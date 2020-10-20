@@ -4,7 +4,6 @@
 # See https://github.com/newrelic/newrelic-telemetry-sdk-ruby/blob/main/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'../..','test_helper'))
-require "logger"
 
 module NewRelic
   module TelemetrySdk
