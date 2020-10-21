@@ -39,6 +39,12 @@ module NewRelic
           @already_logged = {}
         end
       end
+
+      def log_error(exception, message)
+        logger.error message
+        logger.error exception
+      end
+
     end
   end
 end

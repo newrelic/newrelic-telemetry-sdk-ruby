@@ -35,8 +35,7 @@ module NewRelic
         # Report a batch of one pre-transformed item with no common attributes
         report_batch [[item.to_h], nil]
       rescue => e
-        logger.error "Encountered error reporting item in client. Dropping data: 1 point of data"
-        logger.error e
+        log_error e, "Encountered error reporting item in client. Dropping data: 1 point of data"
       end
 
       def report_batch batch_data
@@ -52,8 +51,7 @@ module NewRelic
         post_body = format_payload data, common_attributes
         send_with_response_handling post_body, data, common_attributes
       rescue => e
-        logger.error "Encountered error reporting batch in client. Dropping data: #{data.size} points of data"
-        logger.error e
+        log_error e, "Encountered error reporting batch in client. Dropping data: #{data.size} points of data"
       end
 
       def add_user_agent_product product, version=nil
@@ -79,8 +77,7 @@ module NewRelic
           add_user_agent_header @headers
         end
       rescue => e
-        logger.error "Encountered error adding user agent product"
-        logger.error e
+        log_error e, "Encountered error adding user agent product"
       end
 
     private

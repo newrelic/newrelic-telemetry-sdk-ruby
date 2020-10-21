@@ -49,8 +49,7 @@ module NewRelic
             harvest
             @running = false
           rescue => e
-            logger.error "Encountered error in harvester"
-            logger.error e
+            log_error e, "Encountered error in harvester"
           end
         end
       end
@@ -59,8 +58,7 @@ module NewRelic
         @shutdown = true
         @harvest_thread.join if @running
       rescue => e
-        logger.error "Encountered error stopping harvester"
-        logger.error e
+        log_error e, "Encountered error stopping harvester"
       end
 
     private
