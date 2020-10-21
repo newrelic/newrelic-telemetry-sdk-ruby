@@ -4,10 +4,13 @@
 # See https://github.com/newrelic/newrelic-telemetry-sdk-ruby/blob/main/LICENSE for complete details.
 
 require 'new_relic/telemetry_sdk/util'
+require 'new_relic/telemetry_sdk/logger'
 
 module NewRelic
   module TelemetrySdk
     class Span
+      include NewRelic::TelemetrySdk::Logger
+
       attr_accessor :id,
                     :trace_id,
                     :start_time_ms,
