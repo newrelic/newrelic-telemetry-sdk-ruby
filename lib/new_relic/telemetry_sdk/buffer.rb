@@ -6,6 +6,8 @@
 module NewRelic
   module TelemetrySdk
     class Buffer
+      include NewRelic::TelemetrySdk::Logger
+
       attr_reader :items
       attr_accessor :common_attributes
 

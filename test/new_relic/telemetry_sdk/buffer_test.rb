@@ -13,8 +13,15 @@ module NewRelic
     class BufferTest < Minitest::Test
       def setup
         @buffer = Buffer.new
+        @buffer.logger = ::Logger.new(@log_output = StringIO.new)
+
       end
 
+      def log_output
+        @log_output.rewind
+        @log_output.read
+      end
+      
       def test_record
         span = Span.new
         @buffer.record span
@@ -40,6 +47,19 @@ module NewRelic
 
         assert_equal expected, actual
       end
+
+      def test_flush_logs_error
+        @buffer.instance_variable_get(:@lock).stubs(:synchronize).raises(StandardError.new('pretend_error'))
+        @buffer.flush
+        assert_match(/pretend_error/, log_output)
+      end
+
+      def test_record_logs_error
+        @buffer.instance_variable_get(:@lock).stubs(:synchronize).raises(StandardError.new('pretend_error'))
+        @buffer.record(stub)
+        assert_match(/pretend_error/, log_output)
+      end
+
     end
   end
 end
