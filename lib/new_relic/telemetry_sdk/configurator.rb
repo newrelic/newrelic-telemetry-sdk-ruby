@@ -12,17 +12,38 @@ module NewRelic
       configurator.configure
     end
     
+    def self.config
+      Configurator.config
+    end
+
     class Configurator
+      def self.config= config
+        @config = config
+      end
+    
+      def self.config
+        @config ||= Config.new
+      end
 
-      attr_writer :logger
+      def self.reset
+        @config = nil
+      end
 
-      def initialize
-        @logger = Logger.logger
+      def config
+        Configurator.config
+      end
+
+      def logger= logger
+        config.logger = logger
+      end
+
+      def harvest_interval= interval
+        config.harvest_interval = interval
       end
 
       def configure
-        Logger.logger = @logger
-      end
+        Logger.logger = config.logger
+      end       
     end
   end
 end

@@ -18,6 +18,7 @@ end
 require 'new_relic/telemetry_sdk/version'
 require 'new_relic/telemetry_sdk/util'
 
+require 'new_relic/telemetry_sdk/config'
 require 'new_relic/telemetry_sdk/configurator'
 require 'new_relic/telemetry_sdk/logger'
 

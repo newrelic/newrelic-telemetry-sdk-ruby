@@ -18,6 +18,10 @@ module NewRelic
         @log_output = StringIO.new
       end
 
+      def teardown
+        Configurator.reset
+      end
+      
       def log_output
         @log_output.rewind
         @log_output.read
@@ -41,6 +45,14 @@ module NewRelic
         NewRelic::TelemetrySdk.logger.warn "SECOND"
         assert_match "FIRST", log_output
         assert_match "SECOND", log_output
+      end
+
+      def test_configure_harvest_interval
+        NewRelic::TelemetrySdk.configure do |config|
+          config.harvest_interval = 10
+        end
+        harvester = Harvester.new 
+        assert_equal 10, harvester.interval
       end
     end
   end
