@@ -118,6 +118,15 @@ module NewRelic
         assert_match(/pretend error/, log_output)
       end
 
+      def test_register_logs_error
+        harvester = Harvester.new 
+        harvester.logger = ::Logger.new(@log_output = StringIO.new)
+        harvester.instance_variable_get(:@lock).stubs(:synchronize).raises(StandardError.new('pretend_error'))
+        harvester.register("test buffer", stub, stub)
+        assert_match(/Encountered error while registering buffer test buffer./, log_output)
+        assert_match(/pretend_error/, log_output)
+      end
+
     end
   end
 end

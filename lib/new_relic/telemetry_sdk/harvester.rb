@@ -26,8 +26,7 @@ module NewRelic
           }
         end
       rescue => e
-        logger.error "Encountered error while registering buffer #{name}."
-        logger.error e
+        log_error e, "Encountered error while registering buffer #{name}."
       end
 
       def [] name 
