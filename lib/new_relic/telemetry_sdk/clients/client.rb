@@ -31,6 +31,10 @@ module NewRelic
         @backoff_max = 80 # based on config
       end
 
+      def api_insert_key
+        TelemetrySdk.config.api_insert_key
+      end
+      
       def send_request body
         body = serialize body
         body = gzip_data body if @gzip_request

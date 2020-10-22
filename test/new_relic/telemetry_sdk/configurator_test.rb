@@ -21,10 +21,16 @@ module NewRelic
       def teardown
         Configurator.reset
       end
-      
+
       def log_output
         @log_output.rewind
         @log_output.read
+      end
+
+      def test_method_missing_delegator
+        NewRelic::TelemetrySdk.configure do |config|
+          assert_raises(NoMethodError) { config.api_key }
+        end
       end
 
       def test_configure_client_logger
@@ -53,6 +59,14 @@ module NewRelic
         end
         harvester = Harvester.new 
         assert_equal 10, harvester.interval
+      end
+
+      def test_configure_client_api_key
+        NewRelic::TelemetrySdk.configure do |config|
+          config.api_insert_key = "AN_ORDINARY_KEY"
+        end
+        span_client = NewRelic::TelemetrySdk::SpanClient.new
+        assert_equal "AN_ORDINARY_KEY", span_client.api_insert_key
       end
     end
   end

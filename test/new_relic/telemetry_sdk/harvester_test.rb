@@ -118,8 +118,9 @@ module NewRelic
           thread.join
         end
         Thread.report_on_exception = true
+      ensure
+        Configurator.reset
       end
-
     end
   end
 end

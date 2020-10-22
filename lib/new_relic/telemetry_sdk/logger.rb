@@ -52,7 +52,7 @@ module NewRelic
       end
 
       def clear_already_logged
-        already_logged_lock.synchronize do
+        logger_mutex.synchronize do
           @already_logged = {}
         end
       end

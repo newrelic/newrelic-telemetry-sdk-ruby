@@ -54,6 +54,17 @@ module NewRelic
         refute_match "SECOND", log_output
       end
 
+      def test_can_log_once_again_after_clearing
+        @fake_client.log_warn_once :foo, "FIRST"
+        @fake_client.log_warn_once :foo, "SECOND"
+        assert_match "WARN", log_output
+        assert_match "FIRST", log_output
+        refute_match "SECOND", log_output
+        @fake_client.clear_already_logged
+        @fake_client.log_warn_once :foo, "SECOND"
+        assert_match "SECOND", log_output
+      end
+
       def test_all_the_levels_once
         @fake_client.log_debug_once :one, "FIRST"
         @fake_client.log_warn_once :two, "SECOND"

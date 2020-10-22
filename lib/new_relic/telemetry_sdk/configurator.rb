@@ -17,10 +17,6 @@ module NewRelic
     end
 
     class Configurator
-      def self.config= config
-        @config = config
-      end
-    
       def self.config
         @config ||= Config.new
       end
@@ -33,13 +29,15 @@ module NewRelic
         Configurator.config
       end
 
-      def logger= logger
-        config.logger = logger
-      end
-
-      def harvest_interval= interval
-        config.harvest_interval = interval
-      end
+      # passes any setter methods to the Config object if it responds to such.
+      # all other missing methods are propagated up the chain.
+      def method_missing method, *args, &block
+        if method.to_s =~ /\=$/ && config.respond_to?(method)
+          config.send method, *args, &block 
+        else
+          super
+        end
+      end  
 
       def configure
         Logger.logger = config.logger
