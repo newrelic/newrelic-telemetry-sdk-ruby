@@ -134,7 +134,6 @@ module NewRelic
         assert_match(/Encountered error while registering buffer test buffer./, log_output)
         assert_match(/pretend_error/, log_output)
       end
-
     end
   end
 end
