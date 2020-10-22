@@ -8,10 +8,7 @@ module NewRelic
     class Harvester
       include NewRelic::TelemetrySdk::Logger
 
-      attr_reader :interval
-
-      def initialize interval = 5
-        @interval = interval
+      def initialize 
         @harvestables = {}
         @shutdown = false
         @running = false
@@ -31,6 +28,10 @@ module NewRelic
 
       def [] name 
         @harvestables[name]
+      end
+
+      def interval
+        TelemetrySdk.config.harvest_interval
       end
 
       def running?

@@ -75,7 +75,10 @@ module NewRelic
       end
 
       def test_starts_stops_harvest_thread 
-        harvester = Harvester.new 0
+        NewRelic::TelemetrySdk.configure do |config|
+          config.harvest_interval = 0
+        end
+        harvester = Harvester.new
         harvester.expects(:harvest).at_least_once
 
         harvester.start 
@@ -84,6 +87,8 @@ module NewRelic
 
         harvester.stop
         assert_equal false, harvester.running?
+      ensure
+        Configurator.reset
       end
 
       def test_harvest_after_loop_shutdown
@@ -99,7 +104,10 @@ module NewRelic
       end
 
       def test_harvester_interval_runs
-        harvester = Harvester.new 42
+        NewRelic::TelemetrySdk.configure do |config|
+          config.harvest_interval = 42
+        end
+        harvester = Harvester.new
         harvester.logger = ::Logger.new(@log_output = StringIO.new)
 
         # calls sleep 3 times with the custom interval of 42
