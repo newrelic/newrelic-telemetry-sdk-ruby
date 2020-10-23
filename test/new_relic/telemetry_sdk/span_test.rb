@@ -11,6 +11,12 @@ require 'new_relic/telemetry_sdk/util'
 module NewRelic
   module TelemetrySdk
     class SpanTest < Minitest::Test
+
+      def log_output
+        @log_output.rewind
+        @log_output.read
+      end
+
       def test_required_attributes
         span = Span.new
         assert span.id.is_a? String
@@ -134,6 +140,25 @@ module NewRelic
 
         assert_equal expected_data, span.to_h
       end
+
+      def test_finish_logs_error
+        span = Span.new
+        span.logger = ::Logger.new(@log_output = StringIO.new)
+        time = stub
+        # Forcing an error to occur so we can log it
+        time.stubs(:-).raises(StandardError.new('pretend_error'))
+        span.finish(end_time_ms: time)
+        assert_match(/pretend_error/, log_output)
+      end
+
+      def test_to_h_logs_error
+        span = Span.new(custom_attributes: stub)
+        span.logger = ::Logger.new(@log_output = StringIO.new)
+        span.to_h
+        # Created span with a stub object for custom attributes to force an error to occur so we can log it
+        assert_match(/no implicit conversion of Mocha::Mock into Hash /, log_output)
+      end
+
     end
   end
 end

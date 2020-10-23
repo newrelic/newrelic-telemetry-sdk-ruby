@@ -6,6 +6,8 @@
 module NewRelic
   module TelemetrySdk
     class Buffer
+      include NewRelic::TelemetrySdk::Logger
+
       attr_reader :items
       attr_accessor :common_attributes
 
@@ -18,6 +20,8 @@ module NewRelic
       # Items recorded into the buffer must have a to_h method for transformation
       def record item
         @lock.synchronize { @items << item }
+      rescue => e
+        log_error "Encountered error while recording in buffer", e
       end
 
       def flush
@@ -28,6 +32,8 @@ module NewRelic
         end
         data.map!(&:to_h)
         return data, @common_attributes
+      rescue => e
+        log_error "Encountered error while flushing buffer", e
       end
     end
   end

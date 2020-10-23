@@ -1,10 +1,12 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-telemetry-sdk-ruby/blob/main/LICENSE for complete details.
+require 'new_relic/telemetry_sdk/logger'
 
 module NewRelic
   module TelemetrySdk
     class Harvester
+      include NewRelic::TelemetrySdk::Logger
 
       attr_reader :interval
 
@@ -23,6 +25,8 @@ module NewRelic
             client: client
           }
         end
+      rescue => e
+        log_error "Encountered error while registering buffer #{name}.", e
       end
 
       def [] name 
@@ -36,19 +40,27 @@ module NewRelic
       def start
         @running = true
         @harvest_thread = Thread.new do
-          while !@shutdown do
-            sleep @interval
+          begin
+            while !@shutdown do
+              sleep @interval
+              harvest
+            end
             harvest
+            @running = false
+          rescue => e
+            log_error "Encountered error in harvester", e
           end
-          harvest
-          @running = false
         end
       end
 
       def stop
         @shutdown = true
         @harvest_thread.join if @running
+      rescue => e
+        log_error "Encountered error stopping harvester", e
       end
+
+    private
 
       def harvest
         @lock.synchronize do

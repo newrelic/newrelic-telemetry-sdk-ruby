@@ -31,71 +31,11 @@ module NewRelic
         @backoff_max = 80 # based on config
       end
 
-      def send_request body
-        body = serialize body
-        body = gzip_data body if @gzip_request
-        @connection.post @path, body, @headers
-      end
-
       def report item
         # Report a batch of one pre-transformed item with no common attributes
         report_batch [[item.to_h], nil]
-      end
-
-      def log_and_retry response
-        logger.error response.message
-        raise NewRelic::TelemetrySdk::RetriableServerResponseException
-      end
-
-      def log_and_retry_later response
-        wait_time = response['Retry-After'].to_i 
-        logger.error "Connection error. Retrying in #{wait_time} seconds"
-        logger.error response.message
-        sleep wait_time
-        raise NewRelic::TelemetrySdk::RetriableServerResponseException
-      end
-
-      def log_once_and_drop_data response, data
-        log_error_once response.class, response.message
-        logger.error "Connection error. Dropping data: #{data.size} points of data"
-      end
-
-      def log_and_split_payload response, data, common_attributes
-        logger.error "Payload too large. Splitting payload in half and attempting to resend."
-        logger.error response.message
-        if data.size > 1
-          # splits the data in half and calls report_batch for each half
-          midpoint = data.size/2.0
-          report_batch [data.first(midpoint.ceil), common_attributes]
-          report_batch [data.last(midpoint.floor), common_attributes]
-        else 
-          # payload cannot be split, drop data
-          logger.error "Unable to split payload. Dropping data: #{data.size} points of data"
-        end
-      end
-      
-      def log_and_retry_with_backoff response, data
-        if @connection_attempts < @max_retries
-          wait = backoff_strategy
-          logger.error "Connection error. Retrying in #{wait} seconds."
-          logger.error response.message
-          sleep wait
-          raise NewRelic::TelemetrySdk::RetriableServerResponseException
-        else 
-          logger.error "Maximum retries reached. Dropping data: #{data.size} points of data"
-        end
-      end
-
-      def calculate_backoff_strategy connection_attempts = @connection_attempts, 
-                                     backoff_factor = @backoff_factor, 
-                                     backoff_max = @backoff_max
-        [backoff_max, (backoff_factor * (2**(connection_attempts-1)).to_i)].min
-      end
-
-      def backoff_strategy
-        wait = calculate_backoff_strategy
-        @connection_attempts += 1
-        wait 
+      rescue => e
+        log_error "Encountered error reporting item in client. Dropping data: 1 point of data", e
       end
 
       def report_batch batch_data
@@ -109,7 +49,40 @@ module NewRelic
         @headers[:'x-request-id'] = SecureRandom.uuid
 
         post_body = format_payload data, common_attributes
-      begin
+        send_with_response_handling post_body, data, common_attributes
+      rescue => e
+        log_error "Encountered error reporting batch in client. Dropping data: #{data.size} points of data", e
+      end
+
+      def add_user_agent_product product, version=nil
+        # The product token must be valid to add to the headers
+        if product !~ RFC7230_TOKEN
+          log_once :warn, "Product is not a valid RFC 7230 token"
+          return
+        end
+
+        # The version is ignored if invalid
+        if version && version !~ RFC7230_TOKEN
+          log_once :warn, "Product version is not a valid RFC 7230 token"
+          version = nil
+        end
+
+        entry = [product, version].compact.join("/")
+
+        # adds the product entry and updates the combined user agent 
+        # header, ignoring duplicate product entries.
+        @user_agent_products ||= []
+        unless @user_agent_products.include? entry
+          @user_agent_products << entry
+          add_user_agent_header @headers
+        end
+      rescue => e
+        log_error "Encountered error adding user agent product", e
+      end
+
+    private
+
+      def send_with_response_handling post_body, data, common_attributes
         response = send_request post_body
 
         case response
@@ -142,6 +115,64 @@ module NewRelic
       rescue NewRelic::TelemetrySdk::RetriableServerResponseException
         retry
       end
+      
+      def send_request body
+        body = serialize body
+        body = gzip_data body if @gzip_request
+        @connection.post @path, body, @headers
+      end
+
+      def log_and_retry response
+        log_error response.message
+        raise NewRelic::TelemetrySdk::RetriableServerResponseException
+      end
+
+      def log_and_retry_later response
+        wait_time = response['Retry-After'].to_i 
+        log_error "Connection error. Retrying in #{wait_time} seconds", response.message
+        sleep wait_time
+        raise NewRelic::TelemetrySdk::RetriableServerResponseException
+      end
+
+      def log_once_and_drop_data response, data
+        log_error_once response.class, response.message
+        log_error "Connection error. Dropping data: #{data.size} points of data"
+      end
+
+      def log_and_split_payload response, data, common_attributes
+        log_error "Payload too large. Splitting payload in half and attempting to resend.", response.message
+        if data.size > 1
+          # splits the data in half and calls report_batch for each half
+          midpoint = data.size/2.0
+          report_batch [data.first(midpoint.ceil), common_attributes]
+          report_batch [data.last(midpoint.floor), common_attributes]
+        else 
+          # payload cannot be split, drop data
+          log_error "Unable to split payload. Dropping data: #{data.size} points of data"
+        end
+      end
+      
+      def log_and_retry_with_backoff response, data
+        if @connection_attempts < @max_retries
+          wait = backoff_strategy
+          log_error "Connection error. Retrying in #{wait} seconds.", response.message
+          sleep wait
+          raise NewRelic::TelemetrySdk::RetriableServerResponseException
+        else 
+          log_error "Maximum retries reached. Dropping data: #{data.size} points of data"
+        end
+      end
+
+      def calculate_backoff_strategy connection_attempts = @connection_attempts, 
+                                     backoff_factor = @backoff_factor, 
+                                     backoff_max = @backoff_max
+        [backoff_max, (backoff_factor * (2**(connection_attempts-1)).to_i)].min
+      end
+
+      def backoff_strategy
+        wait = calculate_backoff_strategy
+        @connection_attempts += 1
+        wait 
       end
 
       def format_payload data, common_attributes
@@ -153,30 +184,6 @@ module NewRelic
         end
 
         [post_body]
-      end
-
-      def add_user_agent_product product, version=nil
-        # The product token must be valid to add to the headers
-        if product !~ RFC7230_TOKEN
-          log_once :warn, "Product is not a valid RFC 7230 token"
-          return
-        end
-
-        # The version is ignored if invalid
-        if version && version !~ RFC7230_TOKEN
-          log_once :warn, "Product version is not a valid RFC 7230 token"
-          version = nil
-        end
-
-        entry = [product, version].compact.join("/")
-
-        # adds the product entry and updates the combined user agent 
-        # header, ignoring duplicate product entries.
-        @user_agent_products ||= []
-        unless @user_agent_products.include? entry
-          @user_agent_products << entry
-          add_user_agent_header @headers
-        end
       end
 
       def add_user_agent_header headers

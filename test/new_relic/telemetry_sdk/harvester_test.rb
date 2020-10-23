@@ -10,6 +10,11 @@ module NewRelic
   module TelemetrySdk
     class HarvesterTest < Minitest::Test
 
+      def log_output
+        @log_output.rewind
+        @log_output.read
+      end
+
       # default interval is 5 seconds
       def test_default_interval
         harvester = Harvester.new 
@@ -41,7 +46,7 @@ module NewRelic
         harvester.register 'test2', buffer, client
 
         Harvester.any_instance.expects(:process_harvestable).times(2)
-        harvester.harvest
+        harvester.send(:harvest)
       end
 
       # process_harvestable calles correct functions on buffer and client objects
@@ -54,7 +59,7 @@ module NewRelic
         buffer.expects(:flush).returns(flushed_buffer).once
         client.expects(:report_batch).once
 
-        harvester.process_harvestable ({buffer: buffer, client: client})
+        harvester.send(:process_harvestable, {buffer: buffer, client: client})
       end
 
       def test_process_harvestable_without_data
@@ -66,7 +71,7 @@ module NewRelic
         buffer.expects(:flush).returns(flushed_buffer).once
         client.expects(:report_batch).never
 
-        harvester.process_harvestable ({buffer: buffer, client: client})
+        harvester.send(:process_harvestable, {buffer: buffer, client: client})
       end
 
       def test_starts_stops_harvest_thread 
@@ -95,21 +100,31 @@ module NewRelic
 
       def test_harvester_interval_runs
         harvester = Harvester.new 42
+        harvester.logger = ::Logger.new(@log_output = StringIO.new)
 
         # calls sleep 3 times with the custom interval of 42
         harvester.expects(:sleep).with(42).times(3)
         # Calls harvest 3 times and raises an error the 3rd time
         harvester.expects(:harvest).returns(nil) \
           .then.returns(nil) \
-          .then.raises(RuntimeError.new) \
+          .then.raises(RuntimeError.new('pretend error')) \
           .times(3)
 
-        Thread.report_on_exception = false
-        assert_raises(RuntimeError) do 
-          thread = harvester.start
-          thread.join
-        end
-        Thread.report_on_exception = true
+        # exception should not bubble up to here
+        thread = harvester.start
+        thread.join
+        # checks logs to ensure the error being raised is logged
+        assert_match(/Encountered error in harvester/, log_output)
+        assert_match(/pretend error/, log_output)
+      end
+
+      def test_register_logs_error
+        harvester = Harvester.new 
+        harvester.logger = ::Logger.new(@log_output = StringIO.new)
+        harvester.instance_variable_get(:@lock).stubs(:synchronize).raises(StandardError.new('pretend_error'))
+        harvester.register("test buffer", stub, stub)
+        assert_match(/Encountered error while registering buffer test buffer./, log_output)
+        assert_match(/pretend_error/, log_output)
       end
 
     end

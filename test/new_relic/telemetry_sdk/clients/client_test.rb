@@ -5,7 +5,6 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'../../..','test_helper'))
 require 'new_relic/telemetry_sdk/clients/client'
-require 'logger'
 
 module NewRelic
   module TelemetrySdk
@@ -67,7 +66,7 @@ module NewRelic
           }
         ]
 
-        payload = @client.format_payload(data, common_attributes)
+        payload = @client.send(:format_payload, data, common_attributes)
         assert_equal expected, payload
       end
 
@@ -161,14 +160,14 @@ module NewRelic
         max_time = 16
         factor = 1
         (0..7).each do |attempt|
-          assert_equal expected[attempt], @client.calculate_backoff_strategy(attempt, factor, max_time)
+          assert_equal expected[attempt], @client.send(:calculate_backoff_strategy, attempt, factor, max_time)
         end
         # more examples from the spec
         expected =  [0, 5, 10, 20, 40, 80, 80, 80]
         max_time = 80
         factor = 5
         (0..7).each do |attempt|
-          assert_equal expected[attempt], @client.calculate_backoff_strategy(attempt, factor, max_time)
+          assert_equal expected[attempt], @client.send(:calculate_backoff_strategy, attempt, factor, max_time)
         end
       end
 
@@ -176,7 +175,7 @@ module NewRelic
         time = 13
         @client.expects(:calculate_backoff_strategy).then.returns(time).once
         attempts = @client.instance_variable_get(:@connection_attempts)
-        assert_equal time, @client.backoff_strategy
+        assert_equal time, @client.send(:backoff_strategy)
         assert_equal attempts+1, @client.instance_variable_get(:@connection_attempts)
       end
 
@@ -186,7 +185,7 @@ module NewRelic
         @client.instance_variable_set(:@connection_attempts, 4)
         # Retry raises an exception, so we want the exception raised here
         assert_raises NewRelic::TelemetrySdk::RetriableServerResponseException do 
-          @client.log_and_retry_with_backoff(stub_response(413), [mock])
+          @client.send(:log_and_retry_with_backoff, stub_response(413), [mock])
         end
       end
 
@@ -194,7 +193,7 @@ module NewRelic
         @client.instance_variable_set(:@max_retries, 5)
         @client.instance_variable_set(:@connection_attempts, 5)
         # Retrying raises an exception, so we want to make sure there is no exception raised here
-        @client.log_and_retry_with_backoff(stub_response(413), [mock])
+        @client.send(:log_and_retry_with_backoff, stub_response(413), [mock])
       end
 
       def test_splitting_payload
@@ -202,7 +201,7 @@ module NewRelic
         data = [1, 2, 3, 4]
         @client.expects(:report_batch).with([[1,2],common])
         @client.expects(:report_batch).with([[3,4],common])
-        @client.log_and_split_payload stub_response(413), data, common
+        @client.send(:log_and_split_payload, stub_response(413), data, common)
       end
 
       def test_splitting_odd_payload
@@ -210,14 +209,30 @@ module NewRelic
         data = [1, 2, 3, 4, 5]
         @client.expects(:report_batch).with([[1,2,3],common])
         @client.expects(:report_batch).with([[4,5],common])
-        @client.log_and_split_payload stub_response(413), data, common
+        @client.send(:log_and_split_payload, stub_response(413), data, common)
       end
 
       def test_splitting_payload_of_one
         common = [test: 'test']
         data = []
         @client.expects(:report_batch).never
-        @client.log_and_split_payload stub_response(413), data, common
+        @client.send(:log_and_split_payload, stub_response(413), data, common)
+      end
+
+      def test_report_batch_never_raises_error
+        @client.stubs(:format_payload).raises(StandardError.new('pretend_error'))
+        # if an error bubbles up here, test fails
+        @client.report_batch [[@item, @item], nil]
+        assert_match(/Encountered error./, log_output)
+        assert_match(/pretend_error/, log_output)
+      end
+
+      def test_report_never_raises_error
+        @client.stubs(:report_batch).raises(StandardError.new('pretend_error'))
+        # if an error bubbles up here, test fails
+        @client.report @item
+        assert_match(/Encountered error./, log_output)
+        assert_match(/pretend_error/, log_output)
       end
 
     end

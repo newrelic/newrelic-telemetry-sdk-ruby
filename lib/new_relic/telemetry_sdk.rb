@@ -7,6 +7,7 @@ require 'net/http'
 require 'json'
 require 'zlib'
 require 'securerandom'
+require 'logger'
 
 module NewRelic
   module TelemetrySdk

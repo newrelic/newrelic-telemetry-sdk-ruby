@@ -4,10 +4,13 @@
 # See https://github.com/newrelic/newrelic-telemetry-sdk-ruby/blob/main/LICENSE for complete details.
 
 require 'new_relic/telemetry_sdk/util'
+require 'new_relic/telemetry_sdk/logger'
 
 module NewRelic
   module TelemetrySdk
     class Span
+      include NewRelic::TelemetrySdk::Logger
+
       attr_accessor :id,
                     :trace_id,
                     :start_time_ms,
@@ -38,6 +41,8 @@ module NewRelic
 
       def finish end_time_ms: Util.time_to_ms
         @duration_ms = end_time_ms - @start_time_ms
+      rescue => e
+        log_error "Encountered error finishing span", e
       end
 
       def to_h
@@ -56,6 +61,8 @@ module NewRelic
         data[:attributes].merge! @custom_attributes if @custom_attributes
 
         data
+      rescue => e
+        log_error "Encountered error converting span to hash", e
       end
     end
   end
