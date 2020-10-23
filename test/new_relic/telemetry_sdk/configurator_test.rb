@@ -20,6 +20,7 @@ module NewRelic
 
       def teardown
         Configurator.reset
+        Logger.logger = nil
       end
 
       def log_output
