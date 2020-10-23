@@ -13,8 +13,6 @@ module NewRelic
               path: '/trace/v1',
               headers: {
                 :'Content-Type' => 'application/json',
-                # Note: should be pulled from configuration when
-                # we develop that system
                 :'Api-Key' => api_insert_key,
                 :'Data-Format' => 'newrelic',
                 :'Data-Format-Version' => '1'
