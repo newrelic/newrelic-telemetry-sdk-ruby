@@ -16,7 +16,8 @@ module NewRelic
       end
 
       def register name, buffer, client
-        @lock.synchronize do 
+        logger.info "Registering harvestable #{name}"
+        @lock.synchronize do
           @harvestables[name] = {
             buffer: buffer,
             client: client
@@ -56,6 +57,7 @@ module NewRelic
       end
 
       def stop
+        logger.info "Stopping harvester"
         @shutdown = true
         @harvest_thread.join if @running
       rescue => e

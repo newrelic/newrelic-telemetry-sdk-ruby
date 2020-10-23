@@ -24,6 +24,7 @@ module NewRelic
       # stores the registers buffer and client
       def test_register
         harvester = Harvester.new
+        harvester.logger = ::Logger.new(@log_output = StringIO.new)
         buffer = mock
         client = mock
 
@@ -34,6 +35,7 @@ module NewRelic
           client: client
         }
         assert_equal expected, harvester['test']
+        assert_match "Registering harvestable test", log_output
       end
 
       # process_harestable gets called correct number of times
@@ -135,13 +137,23 @@ module NewRelic
         assert_match(/pretend_error/, log_output)
       end
 
-      def test_logs_harvest_interval
+      def test_logs_harvest_start
         harvester = Harvester.new
         harvester.logger = ::Logger.new(@log_output = StringIO.new)
 
         harvester.start
 
         assert_match "Harvesting every 5 seconds", log_output
+      end
+
+      def test_logs_harvest_stop
+        harvester = Harvester.new
+        harvester.logger = ::Logger.new(@log_output = StringIO.new)
+
+        harvester.start
+        harvester.stop
+
+        assert_match "Stopping harvester", log_output
       end
     end
   end
