@@ -41,6 +41,8 @@ module NewRelic
 
       def finish end_time: Util.current_time
         @duration_ms = Util.time_to_ms(end_time - @start_time)
+      rescue => e
+        log_error "Encountered error finishing span", e
       end
 
       def to_h

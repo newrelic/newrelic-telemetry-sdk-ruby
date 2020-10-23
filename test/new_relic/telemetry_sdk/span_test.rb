@@ -141,7 +141,7 @@ module NewRelic
         time = stub
         # Forcing an error to occur so we can log it
         time.stubs(:-).raises(StandardError.new('pretend_error'))
-        span.finish(end_time_ms: time)
+        span.finish(end_time: time)
         assert_match(/pretend_error/, log_output)
       end
 
