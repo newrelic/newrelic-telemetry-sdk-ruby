@@ -17,20 +17,20 @@ module NewRelic
 
       # default interval is 5 seconds
       def test_default_interval
-        harvester = Harvester.new 
+        harvester = Harvester.new
         assert_equal 5, harvester.interval
       end
 
       # stores the registers buffer and client
       def test_register
-        harvester = Harvester.new 
+        harvester = Harvester.new
         buffer = mock
         client = mock
 
         harvester.register 'test', buffer, client
-        
+
         expected = {
-          buffer: buffer, 
+          buffer: buffer,
           client: client
         }
         assert_equal expected, harvester['test']
@@ -133,6 +133,15 @@ module NewRelic
         harvester.register("test buffer", stub, stub)
         assert_match(/Encountered error while registering buffer test buffer./, log_output)
         assert_match(/pretend_error/, log_output)
+      end
+
+      def test_logs_harvest_interval
+        harvester = Harvester.new
+        harvester.logger = ::Logger.new(@log_output = StringIO.new)
+
+        harvester.start
+
+        assert_match "Harvesting every 5 seconds", log_output
       end
     end
   end

@@ -8,7 +8,7 @@ module NewRelic
     class Harvester
       include NewRelic::TelemetrySdk::Logger
 
-      def initialize 
+      def initialize
         @harvestables = {}
         @shutdown = false
         @running = false
@@ -37,8 +37,9 @@ module NewRelic
       def running?
         @running
       end
-      
+
       def start
+        logger.info "Harvesting every #{interval} seconds"
         @running = true
         @harvest_thread = Thread.new do
           begin
