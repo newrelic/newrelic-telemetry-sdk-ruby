@@ -25,7 +25,7 @@ module NewRelic
       end
 
       # Stubs sleep in the client and expects it to never be called
-      def never_sleep 
+      def never_sleep
         @sleep = @client.stubs(:sleep)
         @sleep.never
       end
@@ -33,6 +33,10 @@ module NewRelic
       def log_output
         @log_output.rewind
         @log_output.read
+      end
+
+      def client_headers
+        @client.instance_variable_get("@headers")
       end
 
       def stub_server status, message = 'default message', headers = {}
@@ -83,16 +87,12 @@ module NewRelic
         @client.report @item
         assert_match "not found", log_output
       end
-      
+
       def test_status_request_timeout
         never_sleep
         # Returns 408 once and then 200 once, expects exactly 2 calls
         stub_server(408).then.returns(stub_response 200).times(2)
         @client.report @item
-      end
-
-      def client_headers
-        @client.instance_variable_get("@headers")
       end
 
       def test_user_agent_header_basics
@@ -235,6 +235,18 @@ module NewRelic
         assert_match(/pretend_error/, log_output)
       end
 
+      def test_audit_logging
+        NewRelic::TelemetrySdk.configure do |config|
+          config.audit_logging_enabled = true
+          config.logger = @client.logger
+        end
+
+        stub_server(200, "OK").once
+        @client.report @item
+        assert_match "Sent payload: [{\"spans\":[{\"key\":\"data\"}]}]", log_output
+      ensure
+        Configurator.reset
+      end
     end
   end
 end

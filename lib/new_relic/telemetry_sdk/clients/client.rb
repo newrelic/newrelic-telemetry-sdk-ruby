@@ -11,7 +11,7 @@ module NewRelic
   module TelemetrySdk
     class Client
       include NewRelic::TelemetrySdk::Logger
-      
+
       def initialize host:,
                      path:,
                      headers: {},
@@ -119,11 +119,20 @@ module NewRelic
       def api_insert_key
         TelemetrySdk.config.api_insert_key
       end
-      
+
+      def audit_logging_enabled?
+        TelemetrySdk.config.audit_logging_enabled
+      end
+
       def send_request body
         body = serialize body
+        log_json_payload body if audit_logging_enabled?
         body = gzip_data body if @gzip_request
         @connection.post @path, body, @headers
+      end
+
+      def log_json_payload payload
+        logger.debug "Sent payload: #{payload}"
       end
 
       def log_and_retry response
@@ -150,12 +159,12 @@ module NewRelic
           midpoint = data.size/2.0
           report_batch [data.first(midpoint.ceil), common_attributes]
           report_batch [data.last(midpoint.floor), common_attributes]
-        else 
+        else
           # payload cannot be split, drop data
           log_error "Unable to split payload. Dropping data: #{data.size} points of data"
         end
       end
-      
+
       def log_and_retry_with_backoff response, data
         if @connection_attempts < @max_retries
           wait = backoff_strategy
@@ -167,8 +176,8 @@ module NewRelic
         end
       end
 
-      def calculate_backoff_strategy connection_attempts = @connection_attempts, 
-                                     backoff_factor = @backoff_factor, 
+      def calculate_backoff_strategy connection_attempts = @connection_attempts,
+                                     backoff_factor = @backoff_factor,
                                      backoff_max = @backoff_max
         [backoff_max, (backoff_factor * (2**(connection_attempts-1)).to_i)].min
       end
@@ -176,7 +185,7 @@ module NewRelic
       def backoff_strategy
         wait = calculate_backoff_strategy
         @connection_attempts += 1
-        wait 
+        wait
       end
 
       def format_payload data, common_attributes

@@ -11,11 +11,13 @@ module NewRelic
       attr_accessor :logger
       attr_accessor :harvest_interval
       attr_accessor :api_insert_key
+      attr_accessor :audit_logging_enabled
 
       def initialize
         @logger = Logger.logger
         @harvest_interval = DEFAULT_HARVEST_INTERVAL
         @api_insert_key = ENV[API_INSERT_KEY]
+        @audit_logging_enabled = false
       end
     end
   end
