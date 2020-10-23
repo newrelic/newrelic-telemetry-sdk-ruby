@@ -35,7 +35,7 @@ module NewRelic
         # Report a batch of one pre-transformed item with no common attributes
         report_batch [[item.to_h], nil]
       rescue => e
-        log_error e, "Encountered error reporting item in client. Dropping data: 1 point of data"
+        log_error "Encountered error reporting item in client. Dropping data: 1 point of data", e
       end
 
       def report_batch batch_data
@@ -51,7 +51,7 @@ module NewRelic
         post_body = format_payload data, common_attributes
         send_with_response_handling post_body, data, common_attributes
       rescue => e
-        log_error e, "Encountered error reporting batch in client. Dropping data: #{data.size} points of data"
+        log_error "Encountered error reporting batch in client. Dropping data: #{data.size} points of data", e
       end
 
       def add_user_agent_product product, version=nil
@@ -77,7 +77,7 @@ module NewRelic
           add_user_agent_header @headers
         end
       rescue => e
-        log_error e, "Encountered error adding user agent product"
+        log_error "Encountered error adding user agent product", e
       end
 
     private
@@ -123,26 +123,24 @@ module NewRelic
       end
 
       def log_and_retry response
-        logger.error response.message
+        log_error response.message
         raise NewRelic::TelemetrySdk::RetriableServerResponseException
       end
 
       def log_and_retry_later response
         wait_time = response['Retry-After'].to_i 
-        logger.error "Connection error. Retrying in #{wait_time} seconds"
-        logger.error response.message
+        log_error "Connection error. Retrying in #{wait_time} seconds", response.message
         sleep wait_time
         raise NewRelic::TelemetrySdk::RetriableServerResponseException
       end
 
       def log_once_and_drop_data response, data
         log_error_once response.class, response.message
-        logger.error "Connection error. Dropping data: #{data.size} points of data"
+        log_error "Connection error. Dropping data: #{data.size} points of data"
       end
 
       def log_and_split_payload response, data, common_attributes
-        logger.error "Payload too large. Splitting payload in half and attempting to resend."
-        logger.error response.message
+        log_error "Payload too large. Splitting payload in half and attempting to resend.", response.message
         if data.size > 1
           # splits the data in half and calls report_batch for each half
           midpoint = data.size/2.0
@@ -150,19 +148,18 @@ module NewRelic
           report_batch [data.last(midpoint.floor), common_attributes]
         else 
           # payload cannot be split, drop data
-          logger.error "Unable to split payload. Dropping data: #{data.size} points of data"
+          log_error "Unable to split payload. Dropping data: #{data.size} points of data"
         end
       end
       
       def log_and_retry_with_backoff response, data
         if @connection_attempts < @max_retries
           wait = backoff_strategy
-          logger.error "Connection error. Retrying in #{wait} seconds."
-          logger.error response.message
+          log_error "Connection error. Retrying in #{wait} seconds.", response.message
           sleep wait
           raise NewRelic::TelemetrySdk::RetriableServerResponseException
         else 
-          logger.error "Maximum retries reached. Dropping data: #{data.size} points of data"
+          log_error "Maximum retries reached. Dropping data: #{data.size} points of data"
         end
       end
 

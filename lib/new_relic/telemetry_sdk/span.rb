@@ -42,7 +42,7 @@ module NewRelic
       def finish end_time_ms: Util.time_to_ms
         @duration_ms = end_time_ms - @start_time_ms
       rescue => e
-        log_error e, "Encountered error finishing span"
+        log_error "Encountered error finishing span", e
       end
 
       def to_h
@@ -62,7 +62,7 @@ module NewRelic
 
         data
       rescue => e
-        log_error e, "Encountered error converting span to hash"
+        log_error "Encountered error converting span to hash", e
       end
     end
   end

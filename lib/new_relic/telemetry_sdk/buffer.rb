@@ -21,7 +21,7 @@ module NewRelic
       def record item
         @lock.synchronize { @items << item }
       rescue => e
-        log_error e, "Encountered error while recording in buffer"
+        log_error "Encountered error while recording in buffer", e
       end
 
       def flush
@@ -33,7 +33,7 @@ module NewRelic
         data.map!(&:to_h)
         return data, @common_attributes
       rescue => e
-        log_error e, "Encountered error while flushing buffer"
+        log_error "Encountered error while flushing buffer", e
       end
     end
   end

@@ -40,9 +40,9 @@ module NewRelic
         end
       end
 
-      def log_error(exception, message)
+      def log_error(message, exception = nil)
         logger.error message
-        logger.error exception
+        logger.error exception if exception
       end
 
     end

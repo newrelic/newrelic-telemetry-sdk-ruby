@@ -26,7 +26,7 @@ module NewRelic
           }
         end
       rescue => e
-        log_error e, "Encountered error while registering buffer #{name}."
+        log_error "Encountered error while registering buffer #{name}.", e
       end
 
       def [] name 
@@ -48,7 +48,7 @@ module NewRelic
             harvest
             @running = false
           rescue => e
-            log_error e, "Encountered error in harvester"
+            log_error "Encountered error in harvester", e
           end
         end
       end
@@ -57,7 +57,7 @@ module NewRelic
         @shutdown = true
         @harvest_thread.join if @running
       rescue => e
-        log_error e, "Encountered error stopping harvester"
+        log_error "Encountered error stopping harvester", e
       end
 
     private
