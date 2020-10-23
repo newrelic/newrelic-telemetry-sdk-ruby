@@ -74,7 +74,8 @@ module NewRelic
           config.trace_api_host = "localhost"
         end
         NewRelic::TelemetrySdk::SpanClient.any_instance.expects(:set_up_connection).with("localhost")
-        span_client = NewRelic::TelemetrySdk::SpanClient.new
+        # causes `set_up_connection` to be invoked
+        NewRelic::TelemetrySdk::SpanClient.new
       end
     end
   end

@@ -25,7 +25,11 @@ module NewRelic
         guid
       end
 
-      def time_to_ms time = Time.now
+      def current_time
+        Time.now
+      end
+
+      def time_to_ms time = current_time
         (time.to_f * 1000).round
       end
     end

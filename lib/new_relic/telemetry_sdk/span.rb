@@ -13,7 +13,7 @@ module NewRelic
 
       attr_accessor :id,
                     :trace_id,
-                    :start_time_ms,
+                    :start_time,
                     :duration_ms,
                     :name,
                     :parent_id,
@@ -22,7 +22,7 @@ module NewRelic
 
       def initialize id: Util.generate_guid(16),
                      trace_id: Util.generate_guid(32),
-                     start_time_ms: Util.time_to_ms,
+                     start_time: Util.current_time,
                      duration_ms: nil,
                      name: nil,
                      parent_id: nil,
@@ -31,7 +31,7 @@ module NewRelic
 
         @id = id
         @trace_id = trace_id
-        @start_time_ms = start_time_ms
+        @start_time = start_time
         @duration_ms = duration_ms
         @name = name
         @parent_id = parent_id
@@ -39,17 +39,15 @@ module NewRelic
         @custom_attributes = custom_attributes
       end
 
-      def finish end_time_ms: Util.time_to_ms
-        @duration_ms = end_time_ms - @start_time_ms
-      rescue => e
-        log_error "Encountered error finishing span", e
+      def finish end_time: Util.current_time
+        @duration_ms = Util.time_to_ms(end_time - @start_time)
       end
 
       def to_h
         data = {
           :id => @id,
           :'trace.id' => @trace_id,
-          :timestamp => @start_time_ms,
+          :timestamp => Util.time_to_ms(@start_time),
           :attributes => {
             :'duration.ms' => @duration_ms,
             :name => @name,

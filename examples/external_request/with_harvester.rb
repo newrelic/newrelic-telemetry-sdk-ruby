@@ -48,7 +48,7 @@ def record_external_request
   span = NewRelic::TelemetrySdk::Span.new(
     id: random_id(16),
     trace_id: random_id(32),
-    start_time_ms: (start_time.to_i * 1000),
+    start_time: start_time,
     duration_ms: (duration * 1000).to_i,
     name: "Net::HTTP#get",
     custom_attributes: custom_attributes
