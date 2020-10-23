@@ -26,9 +26,18 @@ module NewRelic
         add_user_agent_header @headers
         add_content_encoding_header @headers if @gzip_request
         @connection_attempts = 0
-        @max_retries= 8 # based on config
-        @backoff_factor = 5 # based on config
-        @backoff_max = 80 # based on config
+      end
+
+      def max_retries
+        TelemetrySdk.config.max_retries
+      end
+
+      def backoff_factor
+        TelemetrySdk.config.backoff_factor
+      end
+
+      def backoff_max
+        TelemetrySdk.config.backoff_max
       end
 
       def report item
@@ -166,7 +175,7 @@ module NewRelic
       end
 
       def log_and_retry_with_backoff response, data
-        if @connection_attempts < @max_retries
+        if @connection_attempts < max_retries
           wait = backoff_strategy
           log_error "Connection error. Retrying in #{wait} seconds.", response.message
           sleep wait
@@ -176,16 +185,12 @@ module NewRelic
         end
       end
 
-      def calculate_backoff_strategy connection_attempts = @connection_attempts,
-                                     backoff_factor = @backoff_factor,
-                                     backoff_max = @backoff_max
-        [backoff_max, (backoff_factor * (2**(connection_attempts-1)).to_i)].min
+      def calculate_backoff_strategy
+        [backoff_max, (backoff_factor * (2**(@connection_attempts-1)).to_i)].min
       end
 
       def backoff_strategy
-        wait = calculate_backoff_strategy
-        @connection_attempts += 1
-        wait
+        calculate_backoff_strategy.tap { @connection_attempts += 1 }
       end
 
       def format_payload data, common_attributes

@@ -157,18 +157,27 @@ module NewRelic
       def test_backoff_calculation
         # example numbers from the spec
         expected =  [0, 1, 2, 4, 8, 16, 16, 16]
-        max_time = 16
-        factor = 1
+        NewRelic::TelemetrySdk.configure do |config|
+          config.backoff_max = 16
+          config.backoff_factor = 1
+        end
+       
         (0..7).each do |attempt|
           assert_equal expected[attempt], @client.send(:calculate_backoff_strategy, attempt, factor, max_time)
         end
+
         # more examples from the spec
         expected =  [0, 5, 10, 20, 40, 80, 80, 80]
-        max_time = 80
-        factor = 5
+        NewRelic::TelemetrySdk.configure do |config|
+          config.backoff_max = 80
+          config.backoff_factor = 5
+        end
+
         (0..7).each do |attempt|
           assert_equal expected[attempt], @client.send(:calculate_backoff_strategy, attempt, factor, max_time)
         end
+      ensure
+        Configurator.reset
       end
 
       def test_backoff_strategy_increments_attempts
@@ -190,10 +199,16 @@ module NewRelic
       end
 
       def test_reaching_max_attempts_stops_retrying
+        NewRelic::TelemetrySdk.configure do |config|
+          config.max_retries = 5
+        end
+
         @client.instance_variable_set(:@max_retries, 5)
         @client.instance_variable_set(:@connection_attempts, 5)
         # Retrying raises an exception, so we want to make sure there is no exception raised here
         @client.send(:log_and_retry_with_backoff, stub_response(413), [mock])
+      ensure
+        Configurator.reset
       end
 
       def test_splitting_payload
