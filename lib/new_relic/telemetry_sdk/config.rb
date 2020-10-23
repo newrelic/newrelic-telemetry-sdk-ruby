@@ -10,6 +10,15 @@ module NewRelic
     DEFAULT_BACKOFF_FACTOR = 5
     DEFAULT_BACKOFF_MAX = 80
     DEFAULT_MAX_RETRIES = 8
+    DEFAULT_LOG_LEVEL = "info"
+
+    LOG_LEVELS = {
+      "debug" => ::Logger::DEBUG,
+      "info"  => ::Logger::INFO,
+      "warn"  => ::Logger::WARN,
+      "error" => ::Logger::ERROR,
+      "fatal" => ::Logger::FATAL,
+    }
 
     class Config
       attr_accessor :trace_api_host
@@ -21,16 +30,23 @@ module NewRelic
       attr_accessor :backoff_max
       attr_accessor :max_retries
 
+      attr_reader   :log_level
+
       def initialize
         @logger = Logger.logger
         @api_insert_key = ENV[API_INSERT_KEY]
         @audit_logging_enabled = false
+        @logger.level = LOG_LEVELS[DEFAULT_LOG_LEVEL]
 
         @trace_api_host = DEFAULT_TRACE_API_HOST
         @harvest_interval = DEFAULT_HARVEST_INTERVAL
         @backoff_factor = DEFAULT_BACKOFF_FACTOR
         @backoff_max = DEFAULT_BACKOFF_MAX
         @max_retries = DEFAULT_MAX_RETRIES
+      end
+
+      def log_level= level
+        @logger.level = LOG_LEVELS[level]
       end
     end
   end
