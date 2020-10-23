@@ -11,7 +11,7 @@ module NewRelic
   module TelemetrySdk
     class Client
       include NewRelic::TelemetrySdk::Logger
-      
+
       def initialize host:,
                      path:,
                      headers: {},
@@ -34,11 +34,20 @@ module NewRelic
       def api_insert_key
         TelemetrySdk.config.api_insert_key
       end
-      
+
+      def audit_logging_enabled?
+        TelemetrySdk.config.audit_logging_enabled
+      end
+
       def send_request body
         body = serialize body
+        log_json_payload body if audit_logging_enabled?
         body = gzip_data body if @gzip_request
         @connection.post @path, body, @headers
+      end
+
+      def log_json_payload payload
+        logger.debug "Sent payload: #{payload}"
       end
 
       def report item
@@ -52,7 +61,7 @@ module NewRelic
       end
 
       def log_and_retry_later response
-        wait_time = response['Retry-After'].to_i 
+        wait_time = response['Retry-After'].to_i
         logger.error "Connection error. Retrying in #{wait_time} seconds"
         logger.error response.message
         sleep wait_time
@@ -72,12 +81,12 @@ module NewRelic
           midpoint = data.size/2.0
           report_batch [data.first(midpoint.ceil), common_attributes]
           report_batch [data.last(midpoint.floor), common_attributes]
-        else 
+        else
           # payload cannot be split, drop data
           logger.error "Unable to split payload. Dropping data: #{data.size} points of data"
         end
       end
-      
+
       def log_and_retry_with_backoff response, data
         if @connection_attempts < @max_retries
           wait = backoff_strategy
@@ -85,13 +94,13 @@ module NewRelic
           logger.error response.message
           sleep wait
           raise NewRelic::TelemetrySdk::RetriableServerResponseException
-        else 
+        else
           logger.error "Maximum retries reached. Dropping data: #{data.size} points of data"
         end
       end
 
-      def calculate_backoff_strategy connection_attempts = @connection_attempts, 
-                                     backoff_factor = @backoff_factor, 
+      def calculate_backoff_strategy connection_attempts = @connection_attempts,
+                                     backoff_factor = @backoff_factor,
                                      backoff_max = @backoff_max
         [backoff_max, (backoff_factor * (2**(connection_attempts-1)).to_i)].min
       end
@@ -99,7 +108,7 @@ module NewRelic
       def backoff_strategy
         wait = calculate_backoff_strategy
         @connection_attempts += 1
-        wait 
+        wait
       end
 
       def report_batch batch_data
@@ -119,7 +128,7 @@ module NewRelic
         case response
         when Net::HTTPSuccess # 200 - 299
           @connection_attempts = 0 # reset count after sucessful connection
-        
+
         when Net::HTTPBadRequest, # 400
             Net::HTTPUnauthorized, # 401
             Net::HTTPForbidden, # 403
@@ -129,13 +138,13 @@ module NewRelic
             Net::HTTPGone, # 410
             Net::HTTPLengthRequired  # 411
           log_once_and_drop_data response, data
-  
+
         when Net::HTTPRequestTimeOut # 408
           log_and_retry response
 
         when Net::HTTPRequestEntityTooLarge # 413
           log_and_split_payload response, data, common_attributes
-        
+
         when Net::HTTPTooManyRequests # 429
           log_and_retry_later response
 
@@ -174,7 +183,7 @@ module NewRelic
 
         entry = [product, version].compact.join("/")
 
-        # adds the product entry and updates the combined user agent 
+        # adds the product entry and updates the combined user agent
         # header, ignoring duplicate product entries.
         @user_agent_products ||= []
         unless @user_agent_products.include? entry
