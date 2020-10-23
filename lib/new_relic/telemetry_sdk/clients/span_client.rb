@@ -8,7 +8,7 @@ require_relative 'client'
 module NewRelic
   module TelemetrySdk
     class SpanClient < Client
-      def initialize host: 'https://trace-api.newrelic.com'
+      def initialize host: trace_api_host
         super host: host,
               path: '/trace/v1',
               headers: {
@@ -20,6 +20,10 @@ module NewRelic
                 :'Data-Format-Version' => '1'
               },
               payload_type: :spans
+      end
+
+      def trace_api_host
+        TelemetrySdk.config.trace_api_host
       end
     end
   end

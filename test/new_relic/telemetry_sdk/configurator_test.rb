@@ -68,6 +68,14 @@ module NewRelic
         span_client = NewRelic::TelemetrySdk::SpanClient.new
         assert_equal "AN_ORDINARY_KEY", span_client.api_insert_key
       end
+
+      def test_configure_trace_api_host
+        NewRelic::TelemetrySdk.configure do |config|
+          config.trace_api_host = "localhost"
+        end
+        NewRelic::TelemetrySdk::SpanClient.any_instance.expects(:set_up_connection).with("localhost")
+        span_client = NewRelic::TelemetrySdk::SpanClient.new
+      end
     end
   end
 end

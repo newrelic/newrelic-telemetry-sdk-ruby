@@ -26,9 +26,18 @@ module NewRelic
         add_user_agent_header @headers
         add_content_encoding_header @headers if @gzip_request
         @connection_attempts = 0
-        @max_retries= 8 # based on config
-        @backoff_factor = 5 # based on config
-        @backoff_max = 80 # based on config
+      end
+
+      def max_retries
+        TelemetrySdk.config.max_retries
+      end
+
+      def backoff_factor
+        TelemetrySdk.config.backoff_factor
+      end
+
+      def backoff_max
+        TelemetrySdk.config.backoff_max
       end
 
       def api_insert_key
@@ -88,7 +97,7 @@ module NewRelic
       end
 
       def log_and_retry_with_backoff response, data
-        if @connection_attempts < @max_retries
+        if @connection_attempts < max_retries
           wait = backoff_strategy
           logger.error "Connection error. Retrying in #{wait} seconds."
           logger.error response.message
@@ -99,44 +108,27 @@ module NewRelic
         end
       end
 
-      def calculate_backoff_strategy connection_attempts = @connection_attempts,
-                                     backoff_factor = @backoff_factor,
-                                     backoff_max = @backoff_max
-        [backoff_max, (backoff_factor * (2**(connection_attempts-1)).to_i)].min
+      def calculate_backoff_strategy
+        [backoff_max, (backoff_factor * (2**(@connection_attempts-1)).to_i)].min
       end
 
       def backoff_strategy
-        wait = calculate_backoff_strategy
-        @connection_attempts += 1
-        wait
+        calculate_backoff_strategy.tap { @connection_attempts += 1 }
       end
 
-      def report_batch batch_data
-        # We need to generate a version 4 uuid that will
-        # be used for each unique batch, including on retries.
-        # If a batch is split due to a 413 response,
-        # each smaller batch should have its own.
-
-        data, common_attributes = batch_data
-
-        @headers[:'x-request-id'] = SecureRandom.uuid
-
-        post_body = format_payload data, common_attributes
-      begin
-        response = send_request post_body
-
+      def handle_response response, data, common_attributes
         case response
         when Net::HTTPSuccess # 200 - 299
           @connection_attempts = 0 # reset count after sucessful connection
 
         when Net::HTTPBadRequest, # 400
-            Net::HTTPUnauthorized, # 401
-            Net::HTTPForbidden, # 403
-            Net::HTTPNotFound, # 404
-            Net::HTTPMethodNotAllowed, # 405
-            Net::HTTPConflict, # 409
-            Net::HTTPGone, # 410
-            Net::HTTPLengthRequired  # 411
+             Net::HTTPUnauthorized, # 401
+             Net::HTTPForbidden, # 403
+             Net::HTTPNotFound, # 404
+             Net::HTTPMethodNotAllowed, # 405
+             Net::HTTPConflict, # 409
+             Net::HTTPGone, # 410
+             Net::HTTPLengthRequired  # 411
           log_once_and_drop_data response, data
 
         when Net::HTTPRequestTimeOut # 408
@@ -151,10 +143,26 @@ module NewRelic
         else
           log_and_retry_with_backoff response, data
         end
-
-      rescue NewRelic::TelemetrySdk::RetriableServerResponseException
-        retry
       end
+
+      def report_batch batch_data
+        # We need to generate a version 4 uuid that will
+        # be used for each unique batch, including on retries.
+        # If a batch is split due to a 413 response,
+        # each smaller batch should have its own.
+
+        data, common_attributes = batch_data
+
+        @headers[:'x-request-id'] = SecureRandom.uuid
+
+        post_body = format_payload data, common_attributes
+       
+        begin
+          response = send_request post_body
+          handle_response response, data, common_attributes
+        rescue NewRelic::TelemetrySdk::RetriableServerResponseException
+          retry
+        end
       end
 
       def format_payload data, common_attributes
