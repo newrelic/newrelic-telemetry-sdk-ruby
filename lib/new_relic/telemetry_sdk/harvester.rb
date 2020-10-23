@@ -45,7 +45,7 @@ module NewRelic
         @harvest_thread = Thread.new do
           begin
             while !@shutdown do
-              sleep @interval
+              sleep interval
               harvest
             end
             harvest

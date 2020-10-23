@@ -163,7 +163,8 @@ module NewRelic
         end
        
         (0..7).each do |attempt|
-          assert_equal expected[attempt], @client.send(:calculate_backoff_strategy, attempt, factor, max_time)
+          @client.instance_variable_set :'@connection_attempts', attempt
+          assert_equal expected[attempt], @client.send(:calculate_backoff_strategy)
         end
 
         # more examples from the spec
@@ -174,7 +175,8 @@ module NewRelic
         end
 
         (0..7).each do |attempt|
-          assert_equal expected[attempt], @client.send(:calculate_backoff_strategy, attempt, factor, max_time)
+          @client.instance_variable_set :'@connection_attempts', attempt
+          assert_equal expected[attempt], @client.send(:calculate_backoff_strategy)
         end
       ensure
         Configurator.reset

@@ -89,6 +89,10 @@ module NewRelic
         log_error "Encountered error adding user agent product", e
       end
 
+      def api_insert_key
+        TelemetrySdk.config.api_insert_key
+      end
+      
     private
 
       def send_with_response_handling post_body, data, common_attributes
@@ -125,9 +129,7 @@ module NewRelic
         retry
       end
       
-      def api_insert_key
-        TelemetrySdk.config.api_insert_key
-      end
+
 
       def audit_logging_enabled?
         TelemetrySdk.config.audit_logging_enabled
