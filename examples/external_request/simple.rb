@@ -19,10 +19,17 @@ def random_id length=16
   length.times.map{rand(16).to_s(16)}.join
 end
 
+def configure_sdk
+  NewRelic::TelemetrySdk.configure do |config|
+    config.api_insert_key = ENV["API_KEY"]
+  end
+end
+
 # Instantiates and memoizes the SDK client for sending Spans
-def span_client
-  return @span_client if @span_client
-  @span_client = NewRelic::TelemetrySdk::SpanClient.new
+def trace_client
+  return @trace_client if @trace_client
+  configure_sdk
+  @trace_client = NewRelic::TelemetrySdk::SpanClient.new
 end
 
 # Wraps the given block by recording time to retrieve URL's resource, then
@@ -52,7 +59,7 @@ def record_external_request
     name: "Net::HTTP#get",
     custom_attributes: custom_attributes
   )
-  span_client.report span
+  trace_client.report span
 
   # return the results from the given block/proc
   response

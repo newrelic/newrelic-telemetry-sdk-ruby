@@ -4,6 +4,7 @@
 # See https://github.com/newrelic/newrelic-telemetry-sdk-ruby/blob/main/LICENSE for complete details.
 
 require 'net/http'
+require 'logger'
 require 'json'
 require 'zlib'
 require 'securerandom'
