@@ -78,7 +78,7 @@ module NewRelic
 
         entry = [product, version].compact.join("/")
 
-        # adds the product entry and updates the combined user agent 
+        # adds the product entry and updates the combined user agent
         # header, ignoring duplicate product entries.
         @user_agent_products ||= []
         unless @user_agent_products.include? entry
@@ -92,7 +92,7 @@ module NewRelic
       def api_insert_key
         TelemetrySdk.config.api_insert_key
       end
-      
+
     private
 
       def send_with_response_handling post_body, data, common_attributes
@@ -101,7 +101,8 @@ module NewRelic
         case response
         when Net::HTTPSuccess # 200 - 299
           @connection_attempts = 0 # reset count after sucessful connection
-        
+          logger.debug "Successfully sent data to New Relic with response: #{response.code}"
+
         when Net::HTTPBadRequest, # 400
             Net::HTTPUnauthorized, # 401
             Net::HTTPForbidden, # 403
@@ -111,13 +112,13 @@ module NewRelic
             Net::HTTPGone, # 410
             Net::HTTPLengthRequired  # 411
           log_once_and_drop_data response, data
-  
+
         when Net::HTTPRequestTimeOut # 408
           log_and_retry response
 
         when Net::HTTPRequestEntityTooLarge # 413
           log_and_split_payload response, data, common_attributes
-        
+
         when Net::HTTPTooManyRequests # 429
           log_and_retry_later response
 
@@ -128,7 +129,7 @@ module NewRelic
       rescue NewRelic::TelemetrySdk::RetriableServerResponseException
         retry
       end
-      
+
 
 
       def audit_logging_enabled?
@@ -152,7 +153,7 @@ module NewRelic
       end
 
       def log_and_retry_later response
-        wait_time = response['Retry-After'].to_i 
+        wait_time = response['Retry-After'].to_i
         log_error "Connection error. Retrying in #{wait_time} seconds", response.message
         sleep wait_time
         raise NewRelic::TelemetrySdk::RetriableServerResponseException
@@ -182,7 +183,7 @@ module NewRelic
           log_error "Connection error. Retrying in #{wait} seconds.", response.message
           sleep wait
           raise NewRelic::TelemetrySdk::RetriableServerResponseException
-        else 
+        else
           log_error "Maximum retries reached. Dropping data: #{data.size} points of data"
         end
       end

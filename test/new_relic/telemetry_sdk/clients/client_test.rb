@@ -79,6 +79,7 @@ module NewRelic
         stub_server(200).once
 
         @client.report @item
+        assert_match "Successfully sent data to New Relic with response: 200", log_output
       end
 
       def test_status_not_found
@@ -161,7 +162,7 @@ module NewRelic
           config.backoff_max = 16
           config.backoff_factor = 1
         end
-       
+
         (0..7).each do |attempt|
           @client.instance_variable_set :'@connection_attempts', attempt
           assert_equal expected[attempt], @client.send(:calculate_backoff_strategy)
@@ -195,7 +196,7 @@ module NewRelic
         @client.instance_variable_set(:@max_retries, 5)
         @client.instance_variable_set(:@connection_attempts, 4)
         # Retry raises an exception, so we want the exception raised here
-        assert_raises NewRelic::TelemetrySdk::RetriableServerResponseException do 
+        assert_raises NewRelic::TelemetrySdk::RetriableServerResponseException do
           @client.send(:log_and_retry_with_backoff, stub_response(413), [mock])
         end
       end
