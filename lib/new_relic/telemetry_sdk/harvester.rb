@@ -27,7 +27,7 @@ module NewRelic
         log_error "Encountered error while registering buffer #{name}.", e
       end
 
-      def [] name 
+      def [] name
         @harvestables[name]
       end
 
@@ -77,7 +77,7 @@ module NewRelic
       def process_harvestable harvestable
         batch = harvestable[:buffer].flush
         if !batch.nil? && batch[0].respond_to?(:any?) && batch[0].any?
-          harvestable[:client].report_batch batch 
+          harvestable[:client].report_batch batch
         end
       end
 

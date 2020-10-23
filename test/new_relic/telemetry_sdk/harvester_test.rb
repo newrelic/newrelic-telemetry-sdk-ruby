@@ -76,19 +76,23 @@ module NewRelic
         harvester.send(:process_harvestable, {buffer: buffer, client: client})
       end
 
-      def test_starts_stops_harvest_thread 
+      def test_starts_stops_harvest_thread
         NewRelic::TelemetrySdk.configure do |config|
           config.harvest_interval = 0
+          config.logger = ::Logger.new(@log_output = StringIO.new)
         end
+
         harvester = Harvester.new
         harvester.expects(:harvest).at_least_once
 
-        harvester.start 
+        harvester.start
         sleep 0.05
         assert_equal true, harvester.running?
+        assert_match "Harvesting every 0 seconds", log_output
 
         harvester.stop
         assert_equal false, harvester.running?
+        assert_match "Stopping harvester", log_output
       ensure
         Configurator.reset
       end
@@ -97,7 +101,7 @@ module NewRelic
         harvester = Harvester.new
         harvester.expects(:harvest).once
 
-        harvester.instance_variable_set(:@shutdown, true) 
+        harvester.instance_variable_set(:@shutdown, true)
         harvester.start
         sleep 0.05 # wait for the thread to run through
 
@@ -126,6 +130,8 @@ module NewRelic
         # checks logs to ensure the error being raised is logged
         assert_match(/Encountered error in harvester/, log_output)
         assert_match(/pretend error/, log_output)
+      ensure
+        Configurator.reset
       end
 
       def test_register_logs_error
@@ -135,25 +141,6 @@ module NewRelic
         harvester.register("test buffer", stub, stub)
         assert_match(/Encountered error while registering buffer test buffer./, log_output)
         assert_match(/pretend_error/, log_output)
-      end
-
-      def test_logs_harvest_start
-        harvester = Harvester.new
-        harvester.logger = ::Logger.new(@log_output = StringIO.new)
-
-        harvester.start
-
-        assert_match "Harvesting every 5 seconds", log_output
-      end
-
-      def test_logs_harvest_stop
-        harvester = Harvester.new
-        harvester.logger = ::Logger.new(@log_output = StringIO.new)
-
-        harvester.start
-        harvester.stop
-
-        assert_match "Stopping harvester", log_output
       end
     end
   end
