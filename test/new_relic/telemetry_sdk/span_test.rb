@@ -85,7 +85,7 @@ module NewRelic
           end_time_ms = Util.time_to_ms
           span.finish end_time_ms: end_time_ms
 
-          assert_equal 1000, span.duration_ms
+          assert_in_delta 1000, span.duration_ms, 1
         end
       end
 
