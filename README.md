@@ -39,6 +39,24 @@ require 'newrelic-telemetry_sdk'
 
 ### Sending your first span
 
+The example code assumes you've set the following environment variables:
+
+* NEW_RELIC_INSERT_KEY
+
+```
+NewRelic::TelemetrySdk.configure do |config|
+   config.api_insert_key = ENV["NEW_RELIC_INSERT_KEY"]
+end
+
+span = NewRelic::TelemetrySdk::Span.new
+sleep 1
+span.finish
+client = NewRelic::TelemetrySdk::SpanClient.new
+client.report span
+```
+
+For more detailed examples please see [our examples directory](./examples).
+
 ## Testing
 
 Running the test suite is simple.  Just invoke:
@@ -63,15 +81,15 @@ newrelic-telemetry-sdk-ruby is licensed under the [Apache 2.0](http://apache.org
 
 Tips on how to find and query your data in New Relic:
 
-* `Find metric data <https://docs.newrelic.com/docs/data-ingest-apis/get-data-new-relic/metric-api/introduction-metric-api#find-data>`_
-* `Find event data <https://docs.newrelic.com/docs/insights/insights-data-sources/custom-data/introduction-event-api#find-data>`_
-* `Find trace/span data <https://docs.newrelic.com/docs/understand-dependencies/distributed-tracing/trace-api/introduction-trace-api#view-data>`_
+* [Find metric data](https://docs.newrelic.com/docs/data-ingest-apis/get-data-new-relic/metric-api/introduction-metric-api#find-data)
+* [Find event data](https://docs.newrelic.com/docs/insights/insights-data-sources/custom-data/introduction-event-api#find-data)
+* [Find trace/span data](https://docs.newrelic.com/docs/understand-dependencies/distributed-tracing/trace-api/introduction-trace-api#view-data>)
 
 For general querying information, see:
 
-* `Query New Relic data <https://docs.newrelic.com/docs/using-new-relic/data/understand-data/query-new-relic-data>`_
-* `Intro to NRQL <https://docs.newrelic.com/docs/query-data/nrql-new-relic-query-language/getting-started/introduction-nrql>`_
+* [Query New Relic data](https://docs.newrelic.com/docs/using-new-relic/data/understand-data/query-new-relic-data)
+* [Intro to NRQL](https://docs.newrelic.com/docs/query-data/nrql-new-relic-query-language/getting-started/introduction-nrql)
 
 ## Limitations
 
-The New Relic Telemetry APIs are rate limited. Please reference the documentation for `New Relic Metrics API <https://docs.newrelic.com/docs/introduction-new-relic-metric-api>`_ and `New Relic Trace API requirements and limits <https://docs.newrelic.com/docs/apm/distributed-tracing/trace-api/trace-api-general-requirements-limits>`_ on the specifics of the rate limits.
+The New Relic Telemetry APIs are rate limited. Please reference the documentation for [New Relic Metrics API](https://docs.newrelic.com/docs/introduction-new-relic-metric-api) and [New Relic Trace API requirements and limits](https://docs.newrelic.com/docs/apm/distributed-tracing/trace-api/trace-api-general-requirements-limits) on the specifics of the rate limits.
