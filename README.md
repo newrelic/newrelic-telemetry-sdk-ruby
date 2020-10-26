@@ -43,11 +43,11 @@ The example code assumes you've set the following environment variables:
 
 * NEW_RELIC_INSERT_KEY
 
+```
 NewRelic::TelemetrySdk.configure do |config|
    config.api_insert_key = ENV["NEW_RELIC_INSERT_KEY"]
- end
+end
 
-```
 span = NewRelic::TelemetrySdk::Span.new
 sleep 1
 span.finish
