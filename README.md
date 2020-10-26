@@ -39,6 +39,24 @@ require 'newrelic-telemetry_sdk'
 
 ### Sending your first span
 
+The example code assumes you've set the following environment variables:
+
+* NEW_RELIC_INSERT_KEY
+
+NewRelic::TelemetrySdk.configure do |config|
+   config.api_insert_key = ENV["NEW_RELIC_INSERT_KEY"]
+ end
+
+```
+span = NewRelic::TelemetrySdk::Span.new
+sleep 1
+span.finish
+client = NewRelic::TelemetrySdk::SpanClient.new
+client.report span
+```
+
+For more detailed examples please see [our examples directory](./examples).
+
 ## Testing
 
 Running the test suite is simple.  Just invoke:
