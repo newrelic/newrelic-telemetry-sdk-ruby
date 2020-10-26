@@ -27,7 +27,6 @@ require 'new_relic/telemetry_sdk/util'
 require 'new_relic/telemetry_sdk/config'
 require 'new_relic/telemetry_sdk/configurator'
 require 'new_relic/telemetry_sdk/logger'
-require 'new_relic/telemetry_sdk/nil_logger'
 
 require 'new_relic/telemetry_sdk/span'
 require 'new_relic/telemetry_sdk/harvester'

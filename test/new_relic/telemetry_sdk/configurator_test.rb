@@ -34,13 +34,6 @@ module NewRelic
         end
       end
 
-      def test_configure_nil_logger
-        NewRelic::TelemetrySdk.configure do |config|
-          config.logger = NewRelic::TelemetrySdk::NilLogger.new
-        end
-        assert @fake_client.logger.is_a? NewRelic::TelemetrySdk::NilLogger
-      end
-
       def test_configure_client_logger
         NewRelic::TelemetrySdk.configure do |config|
           config.logger = ::Logger.new(@log_output)
@@ -85,7 +78,6 @@ module NewRelic
         # causes `set_up_connection` to be invoked
         NewRelic::TelemetrySdk::SpanClient.new
       end
-
     end
   end
 end
