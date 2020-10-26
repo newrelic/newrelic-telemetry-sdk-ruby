@@ -10,10 +10,6 @@ module NewRelic
   module TelemetrySdk
     class HarvesterTest < Minitest::Test
 
-      def teardown
-        Configurator.reset
-      end
-
       def log_output
         @log_output.rewind
         @log_output.read
@@ -97,6 +93,8 @@ module NewRelic
         harvester.stop
         assert_equal false, harvester.running?
         assert_match "Stopping harvester", log_output
+      ensure
+        Configurator.reset
       end
 
       def test_harvest_after_loop_shutdown
@@ -132,10 +130,12 @@ module NewRelic
         # checks logs to ensure the error being raised is logged
         assert_match(/Encountered error in harvester/, log_output)
         assert_match(/pretend error/, log_output)
+      ensure
+        Configurator.reset
       end
 
       def test_register_logs_error
-        harvester = Harvester.new
+        harvester = Harvester.new 
         harvester.logger = ::Logger.new(@log_output = StringIO.new)
         harvester.instance_variable_get(:@lock).stubs(:synchronize).raises(StandardError.new('pretend_error'))
         harvester.register("test buffer", stub, stub)

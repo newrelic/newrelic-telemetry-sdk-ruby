@@ -65,7 +65,7 @@ module NewRelic
         NewRelic::TelemetrySdk.configure do |config|
           config.harvest_interval = 10
         end
-        harvester = Harvester.new
+        harvester = Harvester.new 
         assert_equal 10, harvester.interval
       end
 

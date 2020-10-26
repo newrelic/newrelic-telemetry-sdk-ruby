@@ -24,10 +24,6 @@ module NewRelic
         @item = ItemStub.new
       end
 
-      def teardown
-        Configurator.reset
-      end
-
       # Stubs sleep in the client and expects it to never be called
       def never_sleep
         @sleep = @client.stubs(:sleep)
@@ -79,11 +75,6 @@ module NewRelic
       end
 
       def test_status_ok
-        NewRelic::TelemetrySdk.configure do |config|
-          config.logger = @client.logger
-          config.log_level = 'debug'
-        end
-
         never_sleep
         stub_server(200).once
 
@@ -188,6 +179,8 @@ module NewRelic
           @client.instance_variable_set :'@connection_attempts', attempt
           assert_equal expected[attempt], @client.send(:calculate_backoff_strategy)
         end
+      ensure
+        Configurator.reset
       end
 
       def test_backoff_strategy_increments_attempts
@@ -217,6 +210,8 @@ module NewRelic
         @client.instance_variable_set(:@connection_attempts, 5)
         # Retrying raises an exception, so we want to make sure there is no exception raised here
         @client.send(:log_and_retry_with_backoff, stub_response(413), [mock])
+      ensure
+        Configurator.reset
       end
 
       def test_splitting_payload
@@ -262,12 +257,13 @@ module NewRelic
         NewRelic::TelemetrySdk.configure do |config|
           config.audit_logging_enabled = true
           config.logger = @client.logger
-          config.log_level = 'debug'
         end
 
         stub_server(200, "OK").once
         @client.report @item
         assert_match "Sent payload: [{\"spans\":[{\"key\":\"data\"}]}]", log_output
+      ensure
+        Configurator.reset
       end
     end
   end
