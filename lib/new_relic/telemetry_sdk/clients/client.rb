@@ -28,18 +28,6 @@ module NewRelic
         @connection_attempts = 0
       end
 
-      def max_retries
-        TelemetrySdk.config.max_retries
-      end
-
-      def backoff_factor
-        TelemetrySdk.config.backoff_factor
-      end
-
-      def backoff_max
-        TelemetrySdk.config.backoff_max
-      end
-
       def report item
         # Report a batch of one pre-transformed item with no common attributes
         report_batch [[item.to_h], nil]
@@ -89,11 +77,23 @@ module NewRelic
         log_error "Encountered error adding user agent product", e
       end
 
+    private
+
       def api_insert_key
         TelemetrySdk.config.api_insert_key
       end
 
-    private
+      def max_retries
+        TelemetrySdk.config.max_retries
+      end
+
+      def backoff_factor
+        TelemetrySdk.config.backoff_factor
+      end
+
+      def backoff_max
+        TelemetrySdk.config.backoff_max
+      end
 
       def send_with_response_handling post_body, data, common_attributes
         response = send_request post_body

@@ -67,7 +67,7 @@ module NewRelic
           config.api_insert_key = "AN_ORDINARY_KEY"
         end
         span_client = NewRelic::TelemetrySdk::SpanClient.new
-        assert_equal "AN_ORDINARY_KEY", span_client.api_insert_key
+        assert_equal "AN_ORDINARY_KEY", span_client.send(:api_insert_key)
       end
 
       def test_configure_trace_api_host
