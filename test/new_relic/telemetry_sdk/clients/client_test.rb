@@ -120,6 +120,13 @@ module NewRelic
         assert_match(/^NewRelic-Ruby-TelemetrySDK\/[\d|\.]+\sbar\/5\.0$/, client_headers[:'User-Agent'])
       end
 
+      def test_adding_user_agent_product_logs_error
+        @client.stubs(:add_user_agent_header).raises(StandardError.new)
+
+        @client.add_user_agent_product "foo"
+
+        assert_match(/Encountered error adding user agent product/, log_output)
+      end
 
       def test_status_request_entity_too_large_splittable
         never_sleep

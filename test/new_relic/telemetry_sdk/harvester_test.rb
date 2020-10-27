@@ -140,6 +140,17 @@ module NewRelic
         assert_match(/Encountered error while registering buffer test buffer./, log_output)
         assert_match(/pretend_error/, log_output)
       end
+
+      def test_stop_logs_error
+        harvester = Harvester.new
+        harvester.start
+        harvester.instance_variable_get(:@harvest_thread).stubs(:join).raises(StandardError.new('pretend_error'))
+
+        harvester.stop
+
+        assert_match(/Encountered error stopping harvester/, log_output)
+        assert_match(/pretend_error/, log_output)
+      end
     end
   end
 end
