@@ -11,7 +11,7 @@ module NewRelic
   module TelemetrySdk
     class Client
       include NewRelic::TelemetrySdk::Logger
-      
+
       def initialize host:,
                      path:,
                      headers: {},
@@ -26,9 +26,6 @@ module NewRelic
         add_user_agent_header @headers
         add_content_encoding_header @headers if @gzip_request
         @connection_attempts = 0
-        @max_retries= 8 # based on config
-        @backoff_factor = 5 # based on config
-        @backoff_max = 80 # based on config
       end
 
       def report item
@@ -69,7 +66,7 @@ module NewRelic
 
         entry = [product, version].compact.join("/")
 
-        # adds the product entry and updates the combined user agent 
+        # adds the product entry and updates the combined user agent
         # header, ignoring duplicate product entries.
         @user_agent_products ||= []
         unless @user_agent_products.include? entry
@@ -82,13 +79,30 @@ module NewRelic
 
     private
 
+      def api_insert_key
+        TelemetrySdk.config.api_insert_key
+      end
+
+      def max_retries
+        TelemetrySdk.config.max_retries
+      end
+
+      def backoff_factor
+        TelemetrySdk.config.backoff_factor
+      end
+
+      def backoff_max
+        TelemetrySdk.config.backoff_max
+      end
+
       def send_with_response_handling post_body, data, common_attributes
         response = send_request post_body
 
         case response
         when Net::HTTPSuccess # 200 - 299
           @connection_attempts = 0 # reset count after sucessful connection
-        
+          logger.debug "Successfully sent data to New Relic with response: #{response.code}"
+
         when Net::HTTPBadRequest, # 400
             Net::HTTPUnauthorized, # 401
             Net::HTTPForbidden, # 403
@@ -98,13 +112,13 @@ module NewRelic
             Net::HTTPGone, # 410
             Net::HTTPLengthRequired  # 411
           log_once_and_drop_data response, data
-  
+
         when Net::HTTPRequestTimeOut # 408
           log_and_retry response
 
         when Net::HTTPRequestEntityTooLarge # 413
           log_and_split_payload response, data, common_attributes
-        
+
         when Net::HTTPTooManyRequests # 429
           log_and_retry_later response
 
@@ -115,11 +129,20 @@ module NewRelic
       rescue NewRelic::TelemetrySdk::RetriableServerResponseException
         retry
       end
-      
+
+      def audit_logging_enabled?
+        TelemetrySdk.config.audit_logging_enabled
+      end
+
       def send_request body
         body = serialize body
+        log_json_payload body if audit_logging_enabled?
         body = gzip_data body if @gzip_request
         @connection.post @path, body, @headers
+      end
+
+      def log_json_payload payload
+        logger.debug "Sent payload: #{payload}"
       end
 
       def log_and_retry response
@@ -128,7 +151,7 @@ module NewRelic
       end
 
       def log_and_retry_later response
-        wait_time = response['Retry-After'].to_i 
+        wait_time = response['Retry-After'].to_i
         log_error "Connection error. Retrying in #{wait_time} seconds", response.message
         sleep wait_time
         raise NewRelic::TelemetrySdk::RetriableServerResponseException
@@ -146,33 +169,29 @@ module NewRelic
           midpoint = data.size/2.0
           report_batch [data.first(midpoint.ceil), common_attributes]
           report_batch [data.last(midpoint.floor), common_attributes]
-        else 
+        else
           # payload cannot be split, drop data
           log_error "Unable to split payload. Dropping data: #{data.size} points of data"
         end
       end
-      
+
       def log_and_retry_with_backoff response, data
-        if @connection_attempts < @max_retries
+        if @connection_attempts < max_retries
           wait = backoff_strategy
           log_error "Connection error. Retrying in #{wait} seconds.", response.message
           sleep wait
           raise NewRelic::TelemetrySdk::RetriableServerResponseException
-        else 
+        else
           log_error "Maximum retries reached. Dropping data: #{data.size} points of data"
         end
       end
 
-      def calculate_backoff_strategy connection_attempts = @connection_attempts, 
-                                     backoff_factor = @backoff_factor, 
-                                     backoff_max = @backoff_max
-        [backoff_max, (backoff_factor * (2**(connection_attempts-1)).to_i)].min
+      def calculate_backoff_strategy
+        [backoff_max, (backoff_factor * (2**(@connection_attempts-1)).to_i)].min
       end
 
       def backoff_strategy
-        wait = calculate_backoff_strategy
-        @connection_attempts += 1
-        wait 
+        calculate_backoff_strategy.tap { @connection_attempts += 1 }
       end
 
       def format_payload data, common_attributes

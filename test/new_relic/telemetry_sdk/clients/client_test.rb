@@ -25,7 +25,7 @@ module NewRelic
       end
 
       # Stubs sleep in the client and expects it to never be called
-      def never_sleep 
+      def never_sleep
         @sleep = @client.stubs(:sleep)
         @sleep.never
       end
@@ -33,6 +33,10 @@ module NewRelic
       def log_output
         @log_output.rewind
         @log_output.read
+      end
+
+      def client_headers
+        @client.instance_variable_get("@headers")
       end
 
       def stub_server status, message = 'default message', headers = {}
@@ -75,6 +79,7 @@ module NewRelic
         stub_server(200).once
 
         @client.report @item
+        assert_match "Successfully sent data to New Relic with response: 200", log_output
       end
 
       def test_status_not_found
@@ -83,16 +88,12 @@ module NewRelic
         @client.report @item
         assert_match "not found", log_output
       end
-      
+
       def test_status_request_timeout
         never_sleep
         # Returns 408 once and then 200 once, expects exactly 2 calls
         stub_server(408).then.returns(stub_response 200).times(2)
         @client.report @item
-      end
-
-      def client_headers
-        @client.instance_variable_get("@headers")
       end
 
       def test_user_agent_header_basics
@@ -119,6 +120,13 @@ module NewRelic
         assert_match(/^NewRelic-Ruby-TelemetrySDK\/[\d|\.]+\sbar\/5\.0$/, client_headers[:'User-Agent'])
       end
 
+      def test_adding_user_agent_product_logs_error
+        @client.stubs(:add_user_agent_header).raises(StandardError.new)
+
+        @client.add_user_agent_product "foo"
+
+        assert_match(/Encountered error adding user agent product/, log_output)
+      end
 
       def test_status_request_entity_too_large_splittable
         never_sleep
@@ -157,18 +165,29 @@ module NewRelic
       def test_backoff_calculation
         # example numbers from the spec
         expected =  [0, 1, 2, 4, 8, 16, 16, 16]
-        max_time = 16
-        factor = 1
-        (0..7).each do |attempt|
-          assert_equal expected[attempt], @client.send(:calculate_backoff_strategy, attempt, factor, max_time)
+        NewRelic::TelemetrySdk.configure do |config|
+          config.backoff_max = 16
+          config.backoff_factor = 1
         end
+
+        (0..7).each do |attempt|
+          @client.instance_variable_set :'@connection_attempts', attempt
+          assert_equal expected[attempt], @client.send(:calculate_backoff_strategy)
+        end
+
         # more examples from the spec
         expected =  [0, 5, 10, 20, 40, 80, 80, 80]
-        max_time = 80
-        factor = 5
-        (0..7).each do |attempt|
-          assert_equal expected[attempt], @client.send(:calculate_backoff_strategy, attempt, factor, max_time)
+        NewRelic::TelemetrySdk.configure do |config|
+          config.backoff_max = 80
+          config.backoff_factor = 5
         end
+
+        (0..7).each do |attempt|
+          @client.instance_variable_set :'@connection_attempts', attempt
+          assert_equal expected[attempt], @client.send(:calculate_backoff_strategy)
+        end
+      ensure
+        Configurator.reset
       end
 
       def test_backoff_strategy_increments_attempts
@@ -184,16 +203,22 @@ module NewRelic
         @client.instance_variable_set(:@max_retries, 5)
         @client.instance_variable_set(:@connection_attempts, 4)
         # Retry raises an exception, so we want the exception raised here
-        assert_raises NewRelic::TelemetrySdk::RetriableServerResponseException do 
+        assert_raises NewRelic::TelemetrySdk::RetriableServerResponseException do
           @client.send(:log_and_retry_with_backoff, stub_response(413), [mock])
         end
       end
 
       def test_reaching_max_attempts_stops_retrying
+        NewRelic::TelemetrySdk.configure do |config|
+          config.max_retries = 5
+        end
+
         @client.instance_variable_set(:@max_retries, 5)
         @client.instance_variable_set(:@connection_attempts, 5)
         # Retrying raises an exception, so we want to make sure there is no exception raised here
         @client.send(:log_and_retry_with_backoff, stub_response(413), [mock])
+      ensure
+        Configurator.reset
       end
 
       def test_splitting_payload
@@ -235,6 +260,18 @@ module NewRelic
         assert_match(/pretend_error/, log_output)
       end
 
+      def test_audit_logging
+        NewRelic::TelemetrySdk.configure do |config|
+          config.audit_logging_enabled = true
+          config.logger = @client.logger
+        end
+
+        stub_server(200, "OK").once
+        @client.report @item
+        assert_match "Sent payload: [{\"spans\":[{\"key\":\"data\"}]}]", log_output
+      ensure
+        Configurator.reset
+      end
     end
   end
 end

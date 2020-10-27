@@ -8,7 +8,14 @@ unless ENV["API_KEY"]
   raise "No API Key supplied.  Export API_KEY environment variable!" 
 end
 
+def configure_sdk
+  NewRelic::TelemetrySdk.configure do |config|
+    config.api_insert_key = ENV["API_KEY"]
+  end
+end
+
 def setup_buffer_harvesting common_attributes = {host: 'fake_host'}
+  configure_sdk
   @harvester = NewRelic::TelemetrySdk::Harvester.new 
   @span_client = NewRelic::TelemetrySdk::SpanClient.new
   # Creates a buffer with common attributes that will be added to all spans in the buffer
@@ -41,7 +48,7 @@ def record_external_request
   span = NewRelic::TelemetrySdk::Span.new(
     id: random_id(16),
     trace_id: random_id(32),
-    start_time_ms: (start_time.to_i * 1000),
+    start_time: start_time,
     duration_ms: (duration * 1000).to_i,
     name: "Net::HTTP#get",
     custom_attributes: custom_attributes

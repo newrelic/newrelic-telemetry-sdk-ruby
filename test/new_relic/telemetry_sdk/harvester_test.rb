@@ -10,6 +10,16 @@ module NewRelic
   module TelemetrySdk
     class HarvesterTest < Minitest::Test
 
+      def setup
+        NewRelic::TelemetrySdk.configure do |config|
+          config.logger = ::Logger.new(@log_output = StringIO.new)
+        end
+      end
+
+      def teardown
+        Configurator.reset
+      end
+
       def log_output
         @log_output.rewind
         @log_output.read
@@ -17,26 +27,27 @@ module NewRelic
 
       # default interval is 5 seconds
       def test_default_interval
-        harvester = Harvester.new 
+        harvester = Harvester.new
         assert_equal 5, harvester.interval
       end
 
       # stores the registers buffer and client
       def test_register
-        harvester = Harvester.new 
+        harvester = Harvester.new
         buffer = mock
         client = mock
 
         harvester.register 'test', buffer, client
-        
+
         expected = {
-          buffer: buffer, 
+          buffer: buffer,
           client: client
         }
         assert_equal expected, harvester['test']
+        assert_match "Registering harvestable test", log_output
       end
 
-      # process_harestable gets called correct number of times
+      # process_harvestable gets called correct number of times
       def test_harvests_each_harvestable
         harvester = Harvester.new
         buffer = mock
@@ -74,23 +85,27 @@ module NewRelic
         harvester.send(:process_harvestable, {buffer: buffer, client: client})
       end
 
-      def test_starts_stops_harvest_thread 
-        harvester = Harvester.new 0
+      def test_starts_stops_harvest_thread
+        NewRelic::TelemetrySdk.configure{|config| config.harvest_interval = 0}
+        harvester = Harvester.new
+
         harvester.expects(:harvest).at_least_once
 
-        harvester.start 
+        harvester.start
         sleep 0.05
         assert_equal true, harvester.running?
+        assert_match "Harvesting every 0 seconds", log_output
 
         harvester.stop
         assert_equal false, harvester.running?
+        assert_match "Stopping harvester", log_output
       end
 
       def test_harvest_after_loop_shutdown
         harvester = Harvester.new
         harvester.expects(:harvest).once
 
-        harvester.instance_variable_set(:@shutdown, true) 
+        harvester.instance_variable_set(:@shutdown, true)
         harvester.start
         sleep 0.05 # wait for the thread to run through
 
@@ -99,8 +114,8 @@ module NewRelic
       end
 
       def test_harvester_interval_runs
-        harvester = Harvester.new 42
-        harvester.logger = ::Logger.new(@log_output = StringIO.new)
+        NewRelic::TelemetrySdk.configure{|config| config.harvest_interval = 42}
+        harvester = Harvester.new
 
         # calls sleep 3 times with the custom interval of 42
         harvester.expects(:sleep).with(42).times(3)
@@ -119,14 +134,23 @@ module NewRelic
       end
 
       def test_register_logs_error
-        harvester = Harvester.new 
-        harvester.logger = ::Logger.new(@log_output = StringIO.new)
+        harvester = Harvester.new
         harvester.instance_variable_get(:@lock).stubs(:synchronize).raises(StandardError.new('pretend_error'))
         harvester.register("test buffer", stub, stub)
         assert_match(/Encountered error while registering buffer test buffer./, log_output)
         assert_match(/pretend_error/, log_output)
       end
 
+      def test_stop_logs_error
+        harvester = Harvester.new
+        harvester.start
+        harvester.instance_variable_get(:@harvest_thread).stubs(:join).raises(StandardError.new('pretend_error'))
+
+        harvester.stop
+
+        assert_match(/Encountered error stopping harvester/, log_output)
+        assert_match(/pretend_error/, log_output)
+      end
     end
   end
 end
