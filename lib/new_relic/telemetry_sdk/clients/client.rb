@@ -9,6 +9,20 @@ require 'new_relic/telemetry_sdk/exception'
 
 module NewRelic
   module TelemetrySdk
+    # This module contains most of the public API methods for the Ruby Telemetry SDK
+    #
+    # For adding custom instrumentation to method invocations, see
+    # the docs for {NewRelic::Agent::MethodTracer} and
+    # {NewRelic::Agent::MethodTracer::ClassMethods}.
+    #
+    # For information on how to trace transactions in non-Rack contexts,
+    # see {NewRelic::Agent::Instrumentation::ControllerInstrumentation}.
+    #
+    # For general documentation about the Ruby agent, see:
+    # https://docs.newrelic.com/docs/agents/ruby-agent
+    #
+    # @api public
+    #
     class Client
       include NewRelic::TelemetrySdk::Logger
 
@@ -28,6 +42,12 @@ module NewRelic
         @connection_attempts = 0
       end
 
+      # reports a single item to the Telemetry client endpoint.
+      #
+      # +item+ should respond to the +#to_h+ method to return a Hash which 
+      # is then serialized and sent to the server.
+      #
+      # @api public
       def report item
         # Report a batch of one pre-transformed item with no common attributes
         report_batch [[item.to_h], nil]
@@ -35,6 +55,12 @@ module NewRelic
         log_error "Encountered error reporting item in client. Dropping data: 1 point of data", e
       end
 
+      # reports a one or more items to the Telemetry client endpoint.
+      #
+      # +batch_data+ should be an tuple array of values where the tuple is a two-part
+      # array continaing a Array of Hashes paired with a Hash of common attributes.
+      #
+      # @api public
       def report_batch batch_data
         # We need to generate a version 4 uuid that will
         # be used for each unique batch, including on retries.
