@@ -130,8 +130,6 @@ module NewRelic
         retry
       end
 
-
-
       def audit_logging_enabled?
         TelemetrySdk.config.audit_logging_enabled
       end

@@ -58,7 +58,7 @@ module NewRelic
         NewRelic::TelemetrySdk.configure do |config|
           config.harvest_interval = 10
         end
-        harvester = Harvester.new 
+        harvester = Harvester.new
         assert_equal 10, harvester.interval
       end
 
@@ -77,6 +77,15 @@ module NewRelic
         NewRelic::TelemetrySdk::SpanClient.any_instance.expects(:set_up_connection).with("localhost")
         # causes `set_up_connection` to be invoked
         NewRelic::TelemetrySdk::SpanClient.new
+      end
+
+      def test_configure_audit_logging_enabled
+        NewRelic::TelemetrySdk.configure do |config|
+          config.audit_logging_enabled = true
+        end
+
+        span_client = NewRelic::TelemetrySdk::SpanClient.new
+        assert span_client.send(:audit_logging_enabled?)
       end
     end
   end
