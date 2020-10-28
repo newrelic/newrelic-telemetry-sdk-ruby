@@ -9,6 +9,10 @@ require 'new_relic/telemetry_sdk/logger'
 module NewRelic
   module TelemetrySdk
     class Span
+      # This class represents a timed operation that is part of a distributed trace.
+      # This operation will be represented as a Span in the New Relic UI.
+      #
+      # @api public
       include NewRelic::TelemetrySdk::Logger
 
       attr_accessor :id,
@@ -20,6 +24,24 @@ module NewRelic
                     :service_name,
                     :custom_attributes
 
+      # @param id [optional, String] A random, unique identifier associated with
+      # this specific New Relic span.
+      # @param trace_id [optional, String] A random, unique identifier associated
+      # with a collection of spans that will be grouped together as a trace in
+      # the New Relic UI.
+      # @param start_time [optional, Time] A Time object corresponding to the
+      # start time of the operation represented by this span.
+      # @param duration_ms [optional, Integer] The duration of the operation represented
+      # by this span, in milliseconds.
+      # @param name [optional, String] The name of the span.
+      # @param parent_id [optional, String] A random, unique identifier associated with
+      # the parent of this span.
+      # @param service_name [optional, String] The name of the entity that created this span.
+      # @param custom_attributes [optional, Hash] Custom attributes that will appear on this
+      # span.
+      # @see https://docs.newrelic.com/docs/understand-dependencies/distributed-tracing/trace-api/report-new-relic-format-traces-trace-api#other-attributes
+      #
+      # @api public
       def initialize id: Util.generate_guid(16),
                      trace_id: Util.generate_guid(32),
                      start_time: Util.current_time,
@@ -39,6 +61,11 @@ module NewRelic
         @custom_attributes = custom_attributes
       end
 
+      # Mark the operation represented by this Span as finished and calculate is duration.
+      # @param end_time [optional, Time] A Time object corresponding to the end time
+      # of the operation represented by this span.
+      #
+      # @api public
       def finish end_time: Util.current_time
         @duration_ms = Util.time_to_ms(end_time - @start_time)
       rescue => e
