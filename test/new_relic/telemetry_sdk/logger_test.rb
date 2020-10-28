@@ -30,6 +30,13 @@ module NewRelic
         assert_match "SECOND", log_output
       end
 
+      def test_logging_globally
+        @fake_client.logger.warn "FIRST"
+        NewRelic::TelemetrySdk.logger.warn "SECOND"
+        assert_match "FIRST", log_output
+        assert_match "SECOND", log_output
+      end
+
       # Level plays no role in logging once!  This test demonstrates that.
       def test_log_once
         @fake_client.log_once :warn, :foo, "FIRST"
@@ -44,6 +51,17 @@ module NewRelic
         assert_match "WARN", log_output
         assert_match "FIRST", log_output
         refute_match "SECOND", log_output
+      end
+
+      def test_can_log_once_again_after_clearing
+        @fake_client.log_warn_once :foo, "FIRST"
+        @fake_client.log_warn_once :foo, "SECOND"
+        assert_match "WARN", log_output
+        assert_match "FIRST", log_output
+        refute_match "SECOND", log_output
+        @fake_client.clear_already_logged
+        @fake_client.log_warn_once :foo, "SECOND"
+        assert_match "SECOND", log_output
       end
 
       def test_all_the_levels_once

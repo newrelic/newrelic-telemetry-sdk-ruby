@@ -11,21 +11,23 @@ module NewRelic
   module TelemetrySdk
     # This module contains most of the public API methods for the Ruby Telemetry SDK
     #
-    # For adding custom instrumentation to method invocations, see
-    # the docs for {NewRelic::Agent::MethodTracer} and
-    # {NewRelic::Agent::MethodTracer::ClassMethods}.
+    # The implementation of this SDK conforms to 
+    # [The New Relic Telemetry SDK specifications](https://github.com/newrelic/newrelic-telemetry-sdk-specs)
     #
-    # For information on how to trace transactions in non-Rack contexts,
-    # see {NewRelic::Agent::Instrumentation::ControllerInstrumentation}.
-    #
-    # For general documentation about the Ruby agent, see:
-    # https://docs.newrelic.com/docs/agents/ruby-agent
+    # For general documentation about the New Relic Telemetry APIs, see:
+    # https://docs.newrelic.com/docs/telemetry-data-platform/ingest-manage-data/get-started/get-know-telemetry-data-platform
     #
     # @api public
     #
     class Client
+      # This class is a parent class for clients used to send data to the New Relic data
+      # ingest endpoints over HTTP (e.g. SpanClient for span data). Clients will automatically
+      # resend data if a recoverable error occurs. They will also automatically handle
+      # connection issues and New Relic errors.
+      #
+      # @api public
       include NewRelic::TelemetrySdk::Logger
-      
+
       def initialize host:,
                      path:,
                      headers: {},
@@ -40,15 +42,13 @@ module NewRelic
         add_user_agent_header @headers
         add_content_encoding_header @headers if @gzip_request
         @connection_attempts = 0
-        @max_retries= 8 # based on config
-        @backoff_factor = 5 # based on config
-        @backoff_max = 80 # based on config
       end
 
-      # reports a single item to the Telemetry client endpoint.
+      # Reports a single item to a New Relic data ingest endpoint.
       #
-      # +item+ should respond to the +#to_h+ method to return a Hash which 
-      # is then serialized and sent to the server.
+      # @param item a single point of data to send to New Relic (e.g. a Span). The item
+      # should respond to the +#to_h+ method to return a Hash which is then serialized
+      # and sent to the data ingest endpoint.
       #
       # @api public
       def report item
@@ -58,10 +58,10 @@ module NewRelic
         log_error "Encountered error reporting item in client. Dropping data: 1 point of data", e
       end
 
-      # reports a one or more items to the Telemetry client endpoint.
+      # Reports a batch of one or more items to a New Relic data ingest endpoint.
       #
-      # +batch_data+ should be an tuple array of values where the tuple is a two-part
-      # array continaing a Array of Hashes paired with a Hash of common attributes.
+      # @param batch_data [Array] a two-part array contianing a Array of Hashes paired with a Hash of
+      # common attributes.
       #
       # @api public
       def report_batch batch_data
@@ -80,6 +80,16 @@ module NewRelic
         log_error "Encountered error reporting batch in client. Dropping data: #{data.size} points of data", e
       end
 
+      # Allows creators of exporters and other product built on this SDK to provide information about
+      # their product for analytic purposes.
+      #
+      # @param product [String] The name of the exporter or other product, e.g. NewRelic-Ruby-OpenTelemetry.
+      # @param version [optional, String] The version number of the exporter or other product
+      #
+      # Both product and version must conform to RFC 7230.
+      # @see https://github.com/newrelic/newrelic-telemetry-sdk-specs/blob/master/communication.md#extending-user-agent-with-exporter-product
+      #
+      # @api public
       def add_user_agent_product product, version=nil
         # The product token must be valid to add to the headers
         if product !~ RFC7230_TOKEN
@@ -95,7 +105,7 @@ module NewRelic
 
         entry = [product, version].compact.join("/")
 
-        # adds the product entry and updates the combined user agent 
+        # adds the product entry and updates the combined user agent
         # header, ignoring duplicate product entries.
         @user_agent_products ||= []
         unless @user_agent_products.include? entry
@@ -108,13 +118,30 @@ module NewRelic
 
     private
 
+      def api_insert_key
+        TelemetrySdk.config.api_insert_key
+      end
+
+      def max_retries
+        TelemetrySdk.config.max_retries
+      end
+
+      def backoff_factor
+        TelemetrySdk.config.backoff_factor
+      end
+
+      def backoff_max
+        TelemetrySdk.config.backoff_max
+      end
+
       def send_with_response_handling post_body, data, common_attributes
         response = send_request post_body
 
         case response
         when Net::HTTPSuccess # 200 - 299
           @connection_attempts = 0 # reset count after sucessful connection
-        
+          logger.debug "Successfully sent data to New Relic with response: #{response.code}"
+
         when Net::HTTPBadRequest, # 400
             Net::HTTPUnauthorized, # 401
             Net::HTTPForbidden, # 403
@@ -124,13 +151,13 @@ module NewRelic
             Net::HTTPGone, # 410
             Net::HTTPLengthRequired  # 411
           log_once_and_drop_data response, data
-  
+
         when Net::HTTPRequestTimeOut # 408
           log_and_retry response
 
         when Net::HTTPRequestEntityTooLarge # 413
           log_and_split_payload response, data, common_attributes
-        
+
         when Net::HTTPTooManyRequests # 429
           log_and_retry_later response
 
@@ -141,11 +168,20 @@ module NewRelic
       rescue NewRelic::TelemetrySdk::RetriableServerResponseException
         retry
       end
-      
+
+      def audit_logging_enabled?
+        TelemetrySdk.config.audit_logging_enabled
+      end
+
       def send_request body
         body = serialize body
+        log_json_payload body if audit_logging_enabled?
         body = gzip_data body if @gzip_request
         @connection.post @path, body, @headers
+      end
+
+      def log_json_payload payload
+        logger.debug "Sent payload: #{payload}"
       end
 
       def log_and_retry response
@@ -154,7 +190,7 @@ module NewRelic
       end
 
       def log_and_retry_later response
-        wait_time = response['Retry-After'].to_i 
+        wait_time = response['Retry-After'].to_i
         log_error "Connection error. Retrying in #{wait_time} seconds", response.message
         sleep wait_time
         raise NewRelic::TelemetrySdk::RetriableServerResponseException
@@ -172,33 +208,29 @@ module NewRelic
           midpoint = data.size/2.0
           report_batch [data.first(midpoint.ceil), common_attributes]
           report_batch [data.last(midpoint.floor), common_attributes]
-        else 
+        else
           # payload cannot be split, drop data
           log_error "Unable to split payload. Dropping data: #{data.size} points of data"
         end
       end
-      
+
       def log_and_retry_with_backoff response, data
-        if @connection_attempts < @max_retries
+        if @connection_attempts < max_retries
           wait = backoff_strategy
           log_error "Connection error. Retrying in #{wait} seconds.", response.message
           sleep wait
           raise NewRelic::TelemetrySdk::RetriableServerResponseException
-        else 
+        else
           log_error "Maximum retries reached. Dropping data: #{data.size} points of data"
         end
       end
 
-      def calculate_backoff_strategy connection_attempts = @connection_attempts, 
-                                     backoff_factor = @backoff_factor, 
-                                     backoff_max = @backoff_max
-        [backoff_max, (backoff_factor * (2**(connection_attempts-1)).to_i)].min
+      def calculate_backoff_strategy
+        [backoff_max, (backoff_factor * (2**(@connection_attempts-1)).to_i)].min
       end
 
       def backoff_strategy
-        wait = calculate_backoff_strategy
-        @connection_attempts += 1
-        wait 
+        calculate_backoff_strategy.tap { @connection_attempts += 1 }
       end
 
       def format_payload data, common_attributes

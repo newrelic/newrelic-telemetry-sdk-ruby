@@ -8,10 +8,7 @@ module NewRelic
     class Harvester
       include NewRelic::TelemetrySdk::Logger
 
-      attr_reader :interval
-
-      def initialize interval = 5
-        @interval = interval
+      def initialize
         @harvestables = {}
         @shutdown = false
         @running = false
@@ -19,7 +16,8 @@ module NewRelic
       end
 
       def register name, buffer, client
-        @lock.synchronize do 
+        logger.info "Registering harvestable #{name}"
+        @lock.synchronize do
           @harvestables[name] = {
             buffer: buffer,
             client: client
@@ -29,20 +27,25 @@ module NewRelic
         log_error "Encountered error while registering buffer #{name}.", e
       end
 
-      def [] name 
+      def [] name
         @harvestables[name]
+      end
+
+      def interval
+        TelemetrySdk.config.harvest_interval
       end
 
       def running?
         @running
       end
-      
+
       def start
+        logger.info "Harvesting every #{interval} seconds"
         @running = true
         @harvest_thread = Thread.new do
           begin
             while !@shutdown do
-              sleep @interval
+              sleep interval
               harvest
             end
             harvest
@@ -54,6 +57,7 @@ module NewRelic
       end
 
       def stop
+        logger.info "Stopping harvester"
         @shutdown = true
         @harvest_thread.join if @running
       rescue => e
@@ -73,7 +77,7 @@ module NewRelic
       def process_harvestable harvestable
         batch = harvestable[:buffer].flush
         if !batch.nil? && batch[0].respond_to?(:any?) && batch[0].any?
-          harvestable[:client].report_batch batch 
+          harvestable[:client].report_batch batch
         end
       end
 

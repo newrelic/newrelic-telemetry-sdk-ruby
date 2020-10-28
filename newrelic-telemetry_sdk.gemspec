@@ -33,4 +33,5 @@ EOS
   spec.add_development_dependency "mocha", "~> 1.11"
   spec.add_development_dependency "pry-nav", "~> 0.3.0"
   spec.add_development_dependency "timecop", "~> 0.9"
+  spec.add_development_dependency "simplecov", "~> 0.19.0"
 end
