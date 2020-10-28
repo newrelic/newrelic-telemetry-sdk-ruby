@@ -11,7 +11,7 @@ module NewRelic
   module TelemetrySdk
     # This module contains most of the public API methods for the Ruby Telemetry SDK
     #
-    # The implementation of this SDK conforms to 
+    # The implementation of this SDK conforms to
     # [The New Relic Telemetry SDK specifications](https://github.com/newrelic/newrelic-telemetry-sdk-specs)
     #
     # For general documentation about the New Relic Telemetry APIs, see:
@@ -46,7 +46,7 @@ module NewRelic
 
       # Reports a single item to a New Relic data ingest endpoint.
       #
-      # @param item     
+      # @param item
       #     a single point of data to send to New Relic (e.g. a Span). The item
       #     should respond to the +#to_h+ method to return a Hash which is then serialized
       #     and sent to the data ingest endpoint.
@@ -61,9 +61,9 @@ module NewRelic
 
       # Reports a batch of one or more items to a New Relic data ingest endpoint.
       #
-      # @param batch_data [Array]   
+      # @param batch_data [Array]
       #     a two-part array contianing a Array of Hashes paired with a Hash of
-      #     ommon attributes.
+      #     common attributes.
       #
       # @api public
       def report_batch batch_data
@@ -85,9 +85,9 @@ module NewRelic
       # Allows creators of exporters and other product built on this SDK to provide information about
       # their product for analytic purposes.  It may be called multiple times and is idempotent.
       #
-      # @param product [String]             
+      # @param product [String]
       #     The name of the exporter or other product, e.g. NewRelic-Ruby-OpenTelemetry.
-      # @param version [optional, String]   
+      # @param version [optional, String]
       #     The version number of the exporter or other product.
       #
       # Both product and version must conform to RFC 7230.
