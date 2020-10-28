@@ -6,6 +6,12 @@
 module NewRelic
   module TelemetrySdk
     class Buffer
+      # Buffers store discrete pieces of data (e.g. Spans) until they are
+      # sent via a timed harvest. Batches of data may also be flushed
+      # from a buffer and sent directly through the client.
+      #
+      # @api public
+
       include NewRelic::TelemetrySdk::Logger
 
       attr_reader :items
