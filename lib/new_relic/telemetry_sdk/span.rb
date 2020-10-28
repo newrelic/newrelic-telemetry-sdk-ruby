@@ -8,11 +8,11 @@ require 'new_relic/telemetry_sdk/logger'
 
 module NewRelic
   module TelemetrySdk
+    # This class represents a timed operation that is part of a distributed trace.
+    # This operation will be represented as a Span in the New Relic UI.
+    #
+    # @api public
     class Span
-      # This class represents a timed operation that is part of a distributed trace.
-      # This operation will be represented as a Span in the New Relic UI.
-      #
-      # @api public
       include NewRelic::TelemetrySdk::Logger
 
       attr_accessor :id,
