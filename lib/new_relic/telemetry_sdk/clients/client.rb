@@ -10,9 +10,10 @@ require 'new_relic/telemetry_sdk/exception'
 module NewRelic
   module TelemetrySdk
     class Client
-      # This class is used to send data to the New Relic API endpoints over HTTP. It will
-      # automatically resend data if a recoverable error occurs. It will also automatically
-      # handle connection issues and New Relic errors.
+      # This class is a parent class for clients used to send data to the New Relic data
+      # ingest endpoints over HTTP (e.g. SpanClient for span data). Clients will automatically
+      # resend data if a recoverable error occurs. They will also automatically handle
+      # connection issues and New Relic errors.
       #
       # @api public
       include NewRelic::TelemetrySdk::Logger
