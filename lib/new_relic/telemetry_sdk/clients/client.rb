@@ -46,9 +46,10 @@ module NewRelic
 
       # Reports a single item to a New Relic data ingest endpoint.
       #
-      # @param item a single point of data to send to New Relic (e.g. a Span). The item
-      # should respond to the +#to_h+ method to return a Hash which is then serialized
-      # and sent to the data ingest endpoint.
+      # @param item     
+      #     a single point of data to send to New Relic (e.g. a Span). The item
+      #     should respond to the +#to_h+ method to return a Hash which is then serialized
+      #     and sent to the data ingest endpoint.
       #
       # @api public
       def report item
@@ -60,8 +61,9 @@ module NewRelic
 
       # Reports a batch of one or more items to a New Relic data ingest endpoint.
       #
-      # @param batch_data [Array] a two-part array contianing a Array of Hashes paired with a Hash of
-      # common attributes.
+      # @param batch_data [Array]   
+      #     a two-part array contianing a Array of Hashes paired with a Hash of
+      #     ommon attributes.
       #
       # @api public
       def report_batch batch_data
@@ -81,10 +83,12 @@ module NewRelic
       end
 
       # Allows creators of exporters and other product built on this SDK to provide information about
-      # their product for analytic purposes.
+      # their product for analytic purposes.  It may be called multiple times and is idempotent.
       #
-      # @param product [String] The name of the exporter or other product, e.g. NewRelic-Ruby-OpenTelemetry.
-      # @param version [optional, String] The version number of the exporter or other product
+      # @param product [String]             
+      #     The name of the exporter or other product, e.g. NewRelic-Ruby-OpenTelemetry.
+      # @param version [optional, String]   
+      #     The version number of the exporter or other product.
       #
       # Both product and version must conform to RFC 7230.
       # @see https://github.com/newrelic/newrelic-telemetry-sdk-specs/blob/master/communication.md#extending-user-agent-with-exporter-product
