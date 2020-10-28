@@ -9,21 +9,12 @@ require 'new_relic/telemetry_sdk/exception'
 
 module NewRelic
   module TelemetrySdk
-    # This module contains most of the public API methods for the Ruby Telemetry SDK
-    #
-    # For adding custom instrumentation to method invocations, see
-    # the docs for {NewRelic::Agent::MethodTracer} and
-    # {NewRelic::Agent::MethodTracer::ClassMethods}.
-    #
-    # For information on how to trace transactions in non-Rack contexts,
-    # see {NewRelic::Agent::Instrumentation::ControllerInstrumentation}.
-    #
-    # For general documentation about the Ruby agent, see:
-    # https://docs.newrelic.com/docs/agents/ruby-agent
-    #
-    # @api public
-    #
     class Client
+      # This class is used to send data to the New Relic API endpoints over HTTP. It will
+      # automatically resend data if a recoverable error occurs. It will also automatically
+      # handle connection issues and New Relic errors.
+      #
+      # @api public
       include NewRelic::TelemetrySdk::Logger
 
       def initialize host:,
@@ -42,10 +33,11 @@ module NewRelic
         @connection_attempts = 0
       end
 
-      # reports a single item to the Telemetry client endpoint.
+      # Reports a single item to a New Relic data ingest endpoint.
       #
-      # +item+ should respond to the +#to_h+ method to return a Hash which 
-      # is then serialized and sent to the server.
+      # @param item a single point of data to send to New Relic (e.g. a Span). The item
+      # should respond to the +#to_h+ method to return a Hash which is then serialized
+      # and sent to the data ingest endpoint.
       #
       # @api public
       def report item
@@ -55,10 +47,10 @@ module NewRelic
         log_error "Encountered error reporting item in client. Dropping data: 1 point of data", e
       end
 
-      # reports a one or more items to the Telemetry client endpoint.
+      # Reports a batch of one or more items to a New Relic data ingest endpoint.
       #
-      # +batch_data+ should be an tuple array of values where the tuple is a two-part
-      # array continaing a Array of Hashes paired with a Hash of common attributes.
+      # @param batch_data [Array] a two-part array continaing a Array of Hashes paired with a Hash of
+      # common attributes.
       #
       # @api public
       def report_batch batch_data
@@ -77,6 +69,16 @@ module NewRelic
         log_error "Encountered error reporting batch in client. Dropping data: #{data.size} points of data", e
       end
 
+      # Allows creators of exporters and other product built on this SDK to provide information about
+      # their product for analytic purposes.
+      #
+      # @param product [String] The name of the exporter or other product, e.g. NewRelic-Ruby-OpenTelemetry.
+      # @param version [optional, String] The version number of the exporter or other product
+      #
+      # Both product and version must conform to RFC 7230.
+      # @see https://github.com/newrelic/newrelic-telemetry-sdk-specs/blob/master/communication.md#extending-user-agent-with-exporter-product
+      #
+      # @api public
       def add_user_agent_product product, version=nil
         # The product token must be valid to add to the headers
         if product !~ RFC7230_TOKEN
