@@ -66,8 +66,8 @@ module NewRelic
 
       # Mark the operation represented by this Span as finished and calculate is duration.
       # @param end_time [optional, Time]
-      #     A Time object corresponding to the end time
-      # of the operation represented by this span.
+      #     A Time object corresponding to the end time of the operation represented
+      #     by this span.
       #
       # @api public
       def finish end_time: Util.current_time

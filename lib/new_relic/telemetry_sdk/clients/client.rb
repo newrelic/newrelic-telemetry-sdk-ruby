@@ -9,23 +9,13 @@ require 'new_relic/telemetry_sdk/exception'
 
 module NewRelic
   module TelemetrySdk
-    # This module contains most of the public API methods for the Ruby Telemetry SDK
-    #
-    # The implementation of this SDK conforms to
-    # [The New Relic Telemetry SDK specifications](https://github.com/newrelic/newrelic-telemetry-sdk-specs)
-    #
-    # For general documentation about the New Relic Telemetry APIs, see:
-    # https://docs.newrelic.com/docs/telemetry-data-platform/ingest-manage-data/get-started/get-know-telemetry-data-platform
+    # This class is a parent class for clients used to send data to the New Relic data
+    # ingest endpoints over HTTP (e.g. SpanClient for span data). Clients will automatically
+    # resend data if a recoverable error occurs. They will also automatically handle
+    # connection issues and New Relic errors.
     #
     # @api public
-    #
     class Client
-      # This class is a parent class for clients used to send data to the New Relic data
-      # ingest endpoints over HTTP (e.g. SpanClient for span data). Clients will automatically
-      # resend data if a recoverable error occurs. They will also automatically handle
-      # connection issues and New Relic errors.
-      #
-      # @api public
       include NewRelic::TelemetrySdk::Logger
 
       def initialize host:,

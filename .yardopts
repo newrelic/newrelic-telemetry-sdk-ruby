@@ -9,6 +9,8 @@ lib/new_relic/telemetry_sdk/exception.rb
 lib/new_relic/telemetry_sdk/buffer.rb
 lib/new_relic/telemetry_sdk/clients/client.rb
 lib/new_relic/telemetry_sdk/clients/span_client.rb
+lib/new_relic/telemetry_sdk/configurator.rb
+lib/new_relic/telemetry_sdk/config.rb
 -
 LICENSE
 CHANGELOG.md

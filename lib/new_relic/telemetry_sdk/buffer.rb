@@ -6,24 +6,47 @@
 module NewRelic
   module TelemetrySdk
     class Buffer
+      # Buffers store discrete pieces of data (e.g. Spans) until they are
+      # sent via a timed harvest. Batches of data may also be flushed
+      # from a buffer and sent directly through the client.
+      #
+      # @api public
+
       include NewRelic::TelemetrySdk::Logger
 
       attr_reader :items
       attr_accessor :common_attributes
 
+      # Record a discrete piece of data (e.g. a Span) into the buffer
+      # for batching purposes.
+      # @param common_attributes [optional, Hash]
+      #     Attributes that should be added to every item in the batch
+      #     e.g. {host: 'my_host'}
+      #
+      # @api public
       def initialize common_attributes=nil
         @items = []
         @common_attributes = common_attributes
         @lock = Mutex.new
       end
 
-      # Items recorded into the buffer must have a to_h method for transformation
+      # Record a discrete piece of data (e.g. a Span) into the buffer.
+      # @param item [Span, etc.]
+      #     A piece of data to record into the buffer. Must have a to_h method
+      #     for transformation.
+      #
+      # @api public
       def record item
         @lock.synchronize { @items << item }
       rescue => e
         log_error "Encountered error while recording in buffer", e
       end
 
+      # Return a batch of data that has been collected in this buffer
+      # as an Array of Hashes. Also returns a Hash of any common attributes
+      # that have been set on the buffer to be attached to each individual data item.
+      #
+      # @api public
       def flush
         data = nil
         @lock.synchronize do

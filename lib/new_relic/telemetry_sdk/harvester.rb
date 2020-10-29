@@ -5,6 +5,10 @@ require 'new_relic/telemetry_sdk/logger'
 
 module NewRelic
   module TelemetrySdk
+    # This class handles sending data to New Relic automatically at configured
+    # intervals.
+    #
+    # @api public
     class Harvester
       include NewRelic::TelemetrySdk::Logger
 
@@ -15,6 +19,20 @@ module NewRelic
         @lock = Mutex.new
       end
 
+      # Register a harvestable (i.e. buffer from which data can be harvested
+      # via a +flush+ method on the current harvester).
+      # @param name [String]
+      #     A unique name for the type of data associated with this harvestable.
+      #     Examples: 'spans', 'external_spans'
+      # @param buffer [Buffer]
+      #     An instance of NewRelic::TelemetrySdk::Buffer in which data can be
+      #     stored for harvest.
+      # @param client [Client]
+      #     An instance of a NewRelic::TelemetrySdk::Client subclass which will
+      #     send harvested data to the correct New Relic backend (e.g. SpanClient
+      #     for spans).
+      #
+      # @api public
       def register name, buffer, client
         logger.info "Registering harvestable #{name}"
         @lock.synchronize do
@@ -39,6 +57,9 @@ module NewRelic
         @running
       end
 
+      # Start scheduled harvests via this harvester.
+      #
+      # @api public
       def start
         logger.info "Harvesting every #{interval} seconds"
         @running = true
@@ -56,6 +77,10 @@ module NewRelic
         end
       end
 
+      # Stop scheduled harvests via this harvester. Any remaining
+      # buffered data will be sent before the harvest thread is stopped.
+      #
+      # @api public
       def stop
         logger.info "Stopping harvester"
         @shutdown = true
