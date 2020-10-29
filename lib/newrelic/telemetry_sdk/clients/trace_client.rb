@@ -7,7 +7,7 @@ require_relative 'client'
 
 module NewRelic
   module TelemetrySdk
-    class SpanClient < Client
+    class TraceClient < Client
       def initialize host: trace_api_host
         super host: host,
               path: '/trace/v1',

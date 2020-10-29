@@ -1,7 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-telemetry-sdk-ruby/blob/main/LICENSE for complete details.
-require 'new_relic/telemetry_sdk/logger'
 
 module NewRelic
   module TelemetrySdk
