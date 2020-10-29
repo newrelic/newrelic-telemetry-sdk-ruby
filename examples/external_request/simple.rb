@@ -7,8 +7,6 @@ require 'net/http'
 require 'bundler'
 Bundler.require
 
-require "new_relic/telemetry_sdk"
-
 # Fail fast if an API_KEY wasn't exported to the environment.
 unless ENV["API_KEY"]
   raise "No API Key supplied.  Export API_KEY environment variable!" 
