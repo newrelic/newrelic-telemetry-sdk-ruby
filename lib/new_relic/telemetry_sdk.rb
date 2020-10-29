@@ -33,4 +33,4 @@ require 'new_relic/telemetry_sdk/harvester'
 require 'new_relic/telemetry_sdk/buffer'
 
 require 'new_relic/telemetry_sdk/clients/client'
-require 'new_relic/telemetry_sdk/clients/span_client'
+require 'new_relic/telemetry_sdk/clients/trace_client'

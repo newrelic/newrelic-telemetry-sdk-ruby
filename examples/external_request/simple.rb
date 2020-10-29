@@ -7,7 +7,7 @@ require 'net/http'
 require 'bundler'
 Bundler.require
 
-require "new_relic/telemetry_sdk"
+# require "new_relic/telemetry_sdk"
 
 # Fail fast if an API_KEY wasn't exported to the environment.
 unless ENV["API_KEY"]
@@ -29,7 +29,7 @@ end
 def trace_client
   return @trace_client if @trace_client
   configure_sdk
-  @trace_client = NewRelic::TelemetrySdk::SpanClient.new
+  @trace_client = NewRelic::TelemetrySdk::TraceClient.new
 end
 
 # Wraps the given block by recording time to retrieve URL's resource, then
