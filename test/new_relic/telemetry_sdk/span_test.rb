@@ -82,7 +82,7 @@ module NewRelic
           end_time = Time.now
           span.finish end_time: end_time
 
-          assert_equal 1000, span.duration_ms
+          assert_in_delta 1000, span.duration_ms, 1
         end
       end
 
