@@ -17,7 +17,7 @@ end
 def setup_buffer_harvesting common_attributes = {host: 'fake_host'}
   configure_sdk
   @harvester = NewRelic::TelemetrySdk::Harvester.new 
-  @trace_client = NewRelic::TelemetrySdk::SpanClient.new
+  @trace_client = NewRelic::TelemetrySdk::TraceClient.new
   # Creates a buffer with common attributes that will be added to all spans in the buffer
   @buffer = NewRelic::TelemetrySdk::Buffer.new common_attributes
   # Register the buffer with a name and the associated client
