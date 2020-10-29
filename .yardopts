@@ -1,5 +1,3 @@
---non-transitive-tag api
---api public
 lib/new_relic/telemetry_sdk.rb
 lib/new_relic/telemetry_sdk/util.rb
 lib/new_relic/telemetry_sdk/span.rb

@@ -16,36 +16,36 @@ module NewRelic
     #
     # Configuration options are as follows:
     #
-    # api_insert_key [optional, String]
+    # @!attribute api_insert_key [optional, String]
     #     A New Relic Insert API key. Necessary for sending data to
     #     New Relic via the Telemetry SDK. Defaults to +API_INSERT_KEY+
     #     environment variable.
     #     @see https://docs.newrelic.com/docs/apis/get-started/intro-apis/types-new-relic-api-keys#event-insert-key
-    # logger [optional, Logger]
+    # @!attribute logger [optional, Logger]
     #     A Logger object customized with your preferred log output
     #     destination (if any) and log level.
-    # audit_logging_enabled [optional, Boolean]
+    # @!attribute audit_logging_enabled [optional, Boolean]
     #     If audit logging is enabled, the contents of every payload
     #     sent to New Relic will be recorded in logs.
     #     This is a very verbose log level for debugging purposes.
-    # harvest_interval [optional, Integer]
+    # @!attribute harvest_interval [optional, Integer]
     #     The frequency of automatic harvest (in seconds) if sending data
     #     with a harvester.
     #     Defaults to 5 seconds.
-    # backoff_factor [optional, Integer]
+    # @!attribute backoff_factor [optional, Integer]
     #     The amount of time (in seconds) to wait after sending data
     #     to New Relic fails before attempting to send again.
     #     Defaults to 5 seconds.
-    # backoff_max [optional, Integer]
+    # @!attribute backoff_max [optional, Integer]
     #     If data cannot be sent to New Relic intermittently, the SDK will
     #     retry the request at increasing intervals, but will stop increasing
     #     the retry intervals when they have reached +backoff_max+ seconds.
     #     Defaults to 80 seconds.
     #     @see https://github.com/newrelic/newrelic-telemetry-sdk-specs/blob/master/communication.md#graceful-degradation
-    # max_retries [optional, Integer]
+    # @!attribute max_retries [optional, Integer]
     #     The maximum number of times to retry sending data to New Relic.
     #     Defaults to 8.
-    # trace_api_host [optional, String]
+    # @!attribute trace_api_host [optional, String]
     #     An alternative New Relic host URL where spans can be sent.
     #
     # @api public

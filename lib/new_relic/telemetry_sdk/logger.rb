@@ -11,7 +11,8 @@ module NewRelic
         
     module Logger
       LOG_LEVELS = %w{debug info warn error fatal}
-
+      private_constant :LOG_LEVELS
+      
       LOG_LEVELS.each do |level|
         define_method "log_#{level}_once" do |key, *msgs|
           log_once level, key, *msgs

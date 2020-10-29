@@ -5,14 +5,69 @@
 
 module NewRelic
   module TelemetrySdk
+    # The {Configurator} provides the mechanism through which the SDK is configured.
+    # 
+    # @example
+    #   NewRelic::TelemetrySdk.configure do |config|
+    #     config.api_insert_key = ENV["API_KEY"]
+    #   end
+    #
+    # See {Config} for details on what properties can be configured.
+    #
+    # @api public
+    class Configurator
+      def self.config
+        @config ||= Config.new
+      end
+
+      # Removes any configurations that were previously customized, effectively
+      # resetting the {Config} state to defaults
+      #
+      # @api private
+      def self.reset
+        @config = nil
+      end
+
+      # Allows direct access to the config state.  The primary purpose of this method is
+      # to access config properties throughout the SDK.
+      #
+      # @note Unlike configuring with # {#self.configure}, setting config properties here 
+      #       may, or may not become immediately active.  Use with care.
+      #
+      # @api public
+      def config
+        Configurator.config
+      end
+
+      # Set Telemetry SDK configuration with a block.
+      # See {Config} for options.
+      #
+      # Example:
+      #   NewRelic::TelemetrySdk.configure do |config|
+      #     config.api_insert_key = ENV["API_KEY"]
+      #   end
+      #
+      # @api public
+      def configure
+        Logger.logger = config.logger
+      end
+
+      private
+
+      # passes any setter methods to the Config object if it responds to such.
+      # all other missing methods are propagated up the chain.
+      # @api private
+      def method_missing method, *args, &block
+        if method.to_s =~ /\=$/ && config.respond_to?(method)
+          config.send method, *args, &block
+        else
+          super
+        end
+      end
+    end
 
     # Set Telemetry SDK configuration with a block.
-    # See NewRelic::TelemetrySdk::Config for options.
-    #
-    # Example:
-    # NewRelic::TelemetrySdk.configure do |config|
-    #   config.api_insert_key = ENV["API_KEY"]
-    # end
+    # See {Config} for options.
     #
     # @api public
     def self.configure
@@ -21,36 +76,15 @@ module NewRelic
       configurator.configure
     end
 
+    # Allows direct access to the config state.  The primary purpose of this method is
+    # to access config properties throughout the SDK.
+    #
+    # @note Unlike configuring with # {#self.configure}, setting config properties here 
+    #       may, or may not become immediately active.  Use with care.
+    #
+    # @api public
     def self.config
       Configurator.config
-    end
-
-    class Configurator
-      def self.config
-        @config ||= Config.new
-      end
-
-      def self.reset
-        @config = nil
-      end
-
-      def config
-        Configurator.config
-      end
-
-      # passes any setter methods to the Config object if it responds to such.
-      # all other missing methods are propagated up the chain.
-      def method_missing method, *args, &block
-        if method.to_s =~ /\=$/ && config.respond_to?(method)
-          config.send method, *args, &block
-        else
-          super
-        end
-      end
-
-      def configure
-        Logger.logger = config.logger
-      end
     end
   end
 end

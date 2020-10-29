@@ -5,12 +5,12 @@
 
 module NewRelic
   module TelemetrySdk
+    # Buffers store discrete pieces of data (e.g. Spans) until they are
+    # sent via a timed {Harvester}. Batches of data may also be flushed
+    # from a buffer and sent directly through the client.
+    #
+    # @api public
     class Buffer
-      # Buffers store discrete pieces of data (e.g. Spans) until they are
-      # sent via a timed harvest. Batches of data may also be flushed
-      # from a buffer and sent directly through the client.
-      #
-      # @api public
 
       include NewRelic::TelemetrySdk::Logger
 
@@ -21,7 +21,7 @@ module NewRelic
       # for batching purposes.
       # @param common_attributes [optional, Hash]
       #     Attributes that should be added to every item in the batch
-      #     e.g. {host: 'my_host'}
+      #     e.g. +{host: 'my_host'}+
       #
       # @api public
       def initialize common_attributes=nil
