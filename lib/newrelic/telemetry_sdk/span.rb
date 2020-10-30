@@ -39,7 +39,7 @@ module NewRelic
       #     The name of the entity that created this span.
       # @param custom_attributes [optional, Hash]
       #     Custom attributes that will appear on this span.
-      # @see https://docs.newrelic.com/docs/understand-dependencies/distributed-tracing/trace-api/report-new-relic-format-traces-trace-api#other-attributes
+      # @see https://docs.newrelic.com/docs/understand-dependencies/distributed-tracing/trace-api/report-new-relic-format-traces-trace-api#other-attributes Report Traces (New Relic format)
       #
       # @api public
       def initialize id: Util.generate_guid(16),

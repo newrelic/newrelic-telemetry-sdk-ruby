@@ -36,7 +36,7 @@ module NewRelic
       # A New Relic Insert API key. Necessary for sending data to
       # New Relic via the Telemetry SDK. Defaults to +API_INSERT_KEY+
       # environment variable.
-      # @see https://docs.newrelic.com/docs/apis/get-started/intro-apis/types-new-relic-api-keys#event-insert-key
+      # @see https://docs.newrelic.com/docs/apis/get-started/intro-apis/types-new-relic-api-keys#event-insert-key Types of New Relic API keys: Insert API key
       attr_accessor :api_insert_key
 
       # @!attribute logger [optional, Logger]
@@ -67,7 +67,7 @@ module NewRelic
       # retry the request at increasing intervals, but will stop increasing
       # the retry intervals when they have reached +backoff_max+ seconds.
       # Defaults to {DEFAULT_BACKOFF_MAX} seconds.
-      # @see https://github.com/newrelic/newrelic-telemetry-sdk-specs/blob/master/communication.md#graceful-degradation
+      # @see https://github.com/newrelic/newrelic-telemetry-sdk-specs/blob/master/communication.md#graceful-degradation Graceful Degradation
       attr_accessor :backoff_max
 
       # @!attribute max_retries [optional, Integer]

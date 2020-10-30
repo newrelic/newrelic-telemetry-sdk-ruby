@@ -5,7 +5,7 @@
 
 module NewRelic
   module TelemetrySdk
-    # Buffers store discrete pieces of data (e.g. Spans) until they are
+    # Buffers store discrete pieces of data (e.g. {Span Spans}) until they are
     # sent via a timed {Harvester}. Batches of data may also be flushed
     # from a buffer and sent directly through the client.
     #
@@ -32,7 +32,7 @@ module NewRelic
         @lock = Mutex.new
       end
 
-      # Record a discrete piece of data (e.g. a Span) into the buffer.
+      # Record a discrete piece of data (e.g. a {Span}) into the {Buffer buffer}.
       # @param item [Span, etc.]
       #     A piece of data to record into the buffer. Must have a to_h method
       #     for transformation.

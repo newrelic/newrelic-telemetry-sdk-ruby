@@ -77,7 +77,7 @@ module NewRelic
       #     The version number of the exporter or other product.
       #
       # Both product and version must conform to RFC 7230.
-      # @see https://github.com/newrelic/newrelic-telemetry-sdk-specs/blob/master/communication.md#extending-user-agent-with-exporter-product
+      # @see https://github.com/newrelic/newrelic-telemetry-sdk-specs/blob/master/communication.md#extending-user-agent-with-exporter-product Communication with New Relic
       #
       # @api public
       def add_user_agent_product product, version=nil

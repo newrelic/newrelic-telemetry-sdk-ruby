@@ -54,9 +54,8 @@ module NewRelic
 
       private
 
-      # passes any setter methods to the Config object if it responds to such.
-      # all other missing methods are propagated up the chain.
-      # @api private
+      # Delegates any setter methods to the Config object if it responds to such.
+      # All other missing methods are propagated up the chain.
       def method_missing method, *args, &block
         if method.to_s =~ /\=$/ && config.respond_to?(method)
           config.send method, *args, &block
