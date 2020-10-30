@@ -1,0 +1,6 @@
+--no-private --protected
+lib/newrelic/**/*.rb
+-
+LICENSE
+CHANGELOG.md
+CONTRIBUTING.md

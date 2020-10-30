@@ -4,20 +4,45 @@
 
 module NewRelic
   module TelemetrySdk
+    # This class handles sending data to New Relic automatically at configured
+    # intervals.
+    #
+    # @example
+    #   harvester = NewRelic::TelemetrySdk::Harvester.new 
+    #   trace_client = NewRelic::TelemetrySdk::TraceClient.new
+    #   buffer = NewRelic::TelemetrySdk::Buffer.new
+    #   harvester.register 'external_spans', buffer, trace_client
+    #   harvester.start
+    #
+    # @api public
     class Harvester
       include NewRelic::TelemetrySdk::Logger
 
       def initialize
-        @harvestables = {}
+        @pipelines = {}
         @shutdown = false
         @running = false
         @lock = Mutex.new
       end
 
+      # Register a pipeline (i.e. a buffer from which data can be harvested
+      # via a +flush+ method and a client that can be used to send that data).
+      # @param name [String]
+      #     A unique name for the type of data associated with this pipeline.
+      #     Examples: 'spans', 'external_spans'
+      # @param buffer [Buffer]
+      #     An instance of NewRelic::TelemetrySdk::Buffer in which data can be
+      #     stored for harvest.
+      # @param client [Client]
+      #     An instance of a NewRelic::TelemetrySdk::Client subclass which will
+      #     send harvested data to the correct New Relic backend (e.g. TraceClient
+      #     for spans).
+      #
+      # @api public
       def register name, buffer, client
-        logger.info "Registering harvestable #{name}"
+        logger.info "Registering pipeline #{name}"
         @lock.synchronize do
-          @harvestables[name] = {
+          @pipelines[name] = {
             buffer: buffer,
             client: client
           }
@@ -27,7 +52,7 @@ module NewRelic
       end
 
       def [] name
-        @harvestables[name]
+        @pipelines[name]
       end
 
       def interval
@@ -38,6 +63,9 @@ module NewRelic
         @running
       end
 
+      # Start scheduled harvests via this harvester.
+      #
+      # @api public
       def start
         logger.info "Harvesting every #{interval} seconds"
         @running = true
@@ -55,6 +83,10 @@ module NewRelic
         end
       end
 
+      # Stop scheduled harvests via this harvester. Any remaining
+      # buffered data will be sent before the harvest thread is stopped.
+      #
+      # @api public
       def stop
         logger.info "Stopping harvester"
         @shutdown = true
@@ -67,16 +99,16 @@ module NewRelic
 
       def harvest
         @lock.synchronize do
-          @harvestables.values.each do |harvestable|
-            process_harvestable harvestable
+          @pipelines.values.each do |pipeline|
+            send_data_via pipeline
           end
         end
       end
 
-      def process_harvestable harvestable
-        batch = harvestable[:buffer].flush
+      def send_data_via pipeline
+        batch = pipeline[:buffer].flush
         if !batch.nil? && batch[0].respond_to?(:any?) && batch[0].any?
-          harvestable[:client].report_batch batch
+          pipeline[:client].report_batch batch
         end
       end
 

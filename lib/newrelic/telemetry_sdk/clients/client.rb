@@ -5,6 +5,12 @@
 
 module NewRelic
   module TelemetrySdk
+    # This class is a parent class for clients used to send data to the New Relic data
+    # ingest endpoints over HTTP (e.g. TraceClient for span data). Clients will automatically
+    # resend data if a recoverable error occurs. They will also automatically handle
+    # connection issues and New Relic errors.
+    #
+    # @api public
     class Client
       include NewRelic::TelemetrySdk::Logger
 
@@ -24,6 +30,14 @@ module NewRelic
         @connection_attempts = 0
       end
 
+      # Reports a single item to a New Relic data ingest endpoint.
+      #
+      # @param item
+      #     a single point of data to send to New Relic (e.g. a Span). The item
+      #     should respond to the +#to_h+ method to return a Hash which is then serialized
+      #     and sent to the data ingest endpoint.
+      #
+      # @api public
       def report item
         # Report a batch of one pre-transformed item with no common attributes
         report_batch [[item.to_h], nil]
@@ -31,6 +45,13 @@ module NewRelic
         log_error "Encountered error reporting item in client. Dropping data: 1 point of data", e
       end
 
+      # Reports a batch of one or more items to a New Relic data ingest endpoint.
+      #
+      # @param batch_data [Array]
+      #     a two-part array contianing a Array of Hashes paired with a Hash of
+      #     common attributes.
+      #
+      # @api public
       def report_batch batch_data
         # We need to generate a version 4 uuid that will
         # be used for each unique batch, including on retries.
@@ -47,6 +68,18 @@ module NewRelic
         log_error "Encountered error reporting batch in client. Dropping data: #{data.size} points of data", e
       end
 
+      # Allows creators of exporters and other product built on this SDK to provide information about
+      # their product for analytic purposes.  It may be called multiple times and is idempotent.
+      #
+      # @param product [String]
+      #     The name of the exporter or other product, e.g. NewRelic-Ruby-OpenTelemetry.
+      # @param version [optional, String]
+      #     The version number of the exporter or other product.
+      #
+      # Both product and version must conform to RFC 7230.
+      # @see https://github.com/newrelic/newrelic-telemetry-sdk-specs/blob/master/communication.md#extending-user-agent-with-exporter-product Communication with New Relic
+      #
+      # @api public
       def add_user_agent_product product, version=nil
         # The product token must be valid to add to the headers
         if product !~ RFC7230_TOKEN

@@ -23,7 +23,7 @@ module NewRelic
         span = Span.new
         @buffer.record span
 
-        assert_equal 1, @buffer.items.length
+        assert_equal 1, @buffer.instance_variable_get(:@items).length
       end
 
       def test_flush
@@ -33,7 +33,7 @@ module NewRelic
         data, _ = @buffer.flush
 
         assert_equal 1, data.length
-        assert_equal 0, @buffer.items.length
+        assert_equal 0, @buffer.instance_variable_get(:@items).length
       end
 
       def test_common_attributes

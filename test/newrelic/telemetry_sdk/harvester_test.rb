@@ -42,11 +42,11 @@ module NewRelic
           client: client
         }
         assert_equal expected, harvester['test']
-        assert_match "Registering harvestable test", log_output
+        assert_match "Registering pipeline test", log_output
       end
 
-      # process_harvestable gets called correct number of times
-      def test_harvests_each_harvestable
+      # send_data_via gets called correct number of times
+      def test_harvests_each_pipeline
         harvester = Harvester.new
         buffer = mock
         client = mock
@@ -54,12 +54,12 @@ module NewRelic
         harvester.register 'test', buffer, client
         harvester.register 'test2', buffer, client
 
-        Harvester.any_instance.expects(:process_harvestable).times(2)
+        Harvester.any_instance.expects(:send_data_via).times(2)
         harvester.send(:harvest)
       end
 
-      # process_harvestable calles correct functions on buffer and client objects
-      def test_process_harvestable_with_data
+      # send_data_via calles correct functions on buffer and client objects
+      def test_send_data_via_with_data
         harvester = Harvester.new
         buffer = mock
         client = mock
@@ -68,10 +68,10 @@ module NewRelic
         buffer.expects(:flush).returns(flushed_buffer).once
         client.expects(:report_batch).once
 
-        harvester.send(:process_harvestable, {buffer: buffer, client: client})
+        harvester.send(:send_data_via, {buffer: buffer, client: client})
       end
 
-      def test_process_harvestable_without_data
+      def test_send_data_via_without_data
         harvester = Harvester.new
         buffer = mock
         client = mock
@@ -80,7 +80,7 @@ module NewRelic
         buffer.expects(:flush).returns(flushed_buffer).once
         client.expects(:report_batch).never
 
-        harvester.send(:process_harvestable, {buffer: buffer, client: client})
+        harvester.send(:send_data_via, {buffer: buffer, client: client})
       end
 
       def test_starts_stops_harvest_thread
