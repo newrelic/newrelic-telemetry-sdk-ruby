@@ -14,7 +14,9 @@ module NewRelic
 
       include NewRelic::TelemetrySdk::Logger
 
-      attr_reader :items
+      # @!attribute common_attributes [optional, Hash]
+      # Attributes that should be added to every item in the batch
+      # e.g. +{host: 'my_host'}+
       attr_accessor :common_attributes
 
       # Record a discrete piece of data (e.g. a Span) into the buffer

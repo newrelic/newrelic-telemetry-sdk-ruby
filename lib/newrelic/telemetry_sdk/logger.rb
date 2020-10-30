@@ -44,22 +44,6 @@ module NewRelic
         @logger ||= ::Logger.new(STDOUT)
       end
     
-      def logger
-        Logger.logger
-      end
-      
-      def logger= logger
-        Logger.logger = logger
-      end
-
-      def logger_mutex
-        @logger_mutex ||= Mutex.new
-      end
-
-      def already_logged
-        @already_logged ||= {}
-      end
-
       def log_once(level, key, *msgs)
         logger_mutex.synchronize do
           return if already_logged.include?(key)
@@ -78,6 +62,24 @@ module NewRelic
       def log_error(message, exception = nil)
         logger.error message
         logger.error exception if exception
+      end
+
+      def logger
+        Logger.logger
+      end
+      
+      def logger= logger
+        Logger.logger = logger
+      end
+
+      private
+
+      def logger_mutex
+        @logger_mutex ||= Mutex.new
+      end
+
+      def already_logged
+        @already_logged ||= {}
       end
     end
 
