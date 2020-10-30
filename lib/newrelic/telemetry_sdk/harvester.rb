@@ -35,7 +35,7 @@ module NewRelic
       #     stored for harvest.
       # @param client [Client]
       #     An instance of a NewRelic::TelemetrySdk::Client subclass which will
-      #     send harvested data to the correct New Relic backend (e.g. SpanClient
+      #     send harvested data to the correct New Relic backend (e.g. TraceClient
       #     for spans).
       #
       # @api public

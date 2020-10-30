@@ -6,7 +6,7 @@
 module NewRelic
   module TelemetrySdk
     # This class is a parent class for clients used to send data to the New Relic data
-    # ingest endpoints over HTTP (e.g. SpanClient for span data). Clients will automatically
+    # ingest endpoints over HTTP (e.g. TraceClient for span data). Clients will automatically
     # resend data if a recoverable error occurs. They will also automatically handle
     # connection issues and New Relic errors.
     #
