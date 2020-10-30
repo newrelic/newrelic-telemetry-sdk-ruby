@@ -1,14 +1,5 @@
-lib/new_relic/telemetry_sdk.rb
-lib/new_relic/telemetry_sdk/util.rb
-lib/new_relic/telemetry_sdk/span.rb
-lib/new_relic/telemetry_sdk/logger.rb
-lib/new_relic/telemetry_sdk/harvester.rb
-lib/new_relic/telemetry_sdk/exception.rb
-lib/new_relic/telemetry_sdk/buffer.rb
-lib/new_relic/telemetry_sdk/clients/client.rb
-lib/new_relic/telemetry_sdk/clients/span_client.rb
-lib/new_relic/telemetry_sdk/configurator.rb
-lib/new_relic/telemetry_sdk/config.rb
+--no-private --protected
+lib/newrelic/**/*.rb
 -
 LICENSE
 CHANGELOG.md

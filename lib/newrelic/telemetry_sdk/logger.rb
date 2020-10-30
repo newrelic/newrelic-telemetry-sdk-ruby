@@ -5,10 +5,27 @@
 
 module NewRelic
   module TelemetrySdk
-    def self.logger
-      Logger.logger
-    end
-        
+    # The Logger Singleton object manages the logger for the SDK and is fully configurable by the user.  
+    # Any Ruby class that responds to the common methods of the Ruby standard {::Logger} class can
+    # be configured for the SDk.
+    # 
+    # The logger may be configured like this:
+    # @example with configure block
+    #   require 'logger'
+    #
+    #   logger = ::Logger.new(STDOUT)
+    #   logger.level = Logger::WARN
+    #
+    #   NewRelic::TelemetrySdk.configure do |config|
+    #     config.logger = logger
+    #   end
+    #
+    # @example without configure block
+    #   require 'logger'
+    #   
+    #   NewRelic::TelemetrySdk.logger = ::Logger.new("/dev/null")
+    #
+    # @api public
     module Logger
       LOG_LEVELS = %w{debug info warn error fatal}
       private_constant :LOG_LEVELS
@@ -62,7 +79,10 @@ module NewRelic
         logger.error message
         logger.error exception if exception
       end
+    end
 
+    def self.logger
+      Logger.logger
     end
   end
 end

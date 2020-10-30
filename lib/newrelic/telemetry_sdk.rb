@@ -12,10 +12,11 @@ require 'logger'
 
 module NewRelic
   module TelemetrySdk
+    private
+
     USER_AGENT_NAME = "NewRelic-Ruby-TelemetrySDK"
     RFC7230_TOKEN = /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/
 
-    # Environment variable names
     NEW_RELIC_PREFIX = "NEW_RELIC"
     API_INSERT_KEY = "#{NEW_RELIC_PREFIX}_API_INSERT_KEY"
   end

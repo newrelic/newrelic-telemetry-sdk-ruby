@@ -7,6 +7,13 @@ module NewRelic
     # This class handles sending data to New Relic automatically at configured
     # intervals.
     #
+    # @example
+    #   harvester = NewRelic::TelemetrySdk::Harvester.new 
+    #   trace_client = NewRelic::TelemetrySdk::TraceClient.new
+    #   buffer = NewRelic::TelemetrySdk::Buffer.new
+    #   harvester.register 'external_spans', buffer, trace_client
+    #   harvester.start
+    #
     # @api public
     class Harvester
       include NewRelic::TelemetrySdk::Logger

@@ -42,7 +42,7 @@ module NewRelic
       # Set Telemetry SDK configuration with a block.
       # See {Config} for options.
       #
-      # Example:
+      # @example Setting the API Key
       #   NewRelic::TelemetrySdk.configure do |config|
       #     config.api_insert_key = ENV["API_KEY"]
       #   end
@@ -68,6 +68,12 @@ module NewRelic
 
     # Set Telemetry SDK configuration with a block.
     # See {Config} for options.
+    #
+    #
+    # @example Setting the API Key
+    #   NewRelic::TelemetrySdk.configure do |config|
+    #     config.api_insert_key = ENV["API_KEY"]
+    #   end
     #
     # @api public
     def self.configure
