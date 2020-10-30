@@ -5,6 +5,9 @@
 
 module NewRelic
   module TelemetrySdk
+    # A {RetriableServerResponseException} is used to signal that the SDK
+    # should attempt to resend the data that received a response error
+    # from the server on the previous attempt.
     class RetriableServerResponseException < StandardError; end
   end
 end

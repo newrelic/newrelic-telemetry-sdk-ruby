@@ -7,6 +7,19 @@ require_relative 'client'
 
 module NewRelic
   module TelemetrySdk
+    # The {TraceClient} sends {Span} data to the Trace API host endpoint.
+    #
+    # @example
+    #   trace_client = NewRelic::TelemetrySdk::TraceClient.new
+    #   
+    #   span = NewRelic::TelemetrySdk::Span.new(
+    #     id: random_id(16),
+    #     trace_id: random_id(32),
+    #     start_time: Time.now,
+    #     name: "Net::HTTP#get"
+    #   )
+    #   trace_client.report span
+    #
     class TraceClient < Client
       def initialize host: trace_api_host
         super host: host,
@@ -20,6 +33,8 @@ module NewRelic
               payload_type: :spans
       end
 
+      private 
+      
       def trace_api_host
         TelemetrySdk.config.trace_api_host
       end
