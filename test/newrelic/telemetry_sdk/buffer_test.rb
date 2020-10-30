@@ -5,9 +5,6 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'../..','test_helper'))
 
-require 'new_relic/telemetry_sdk/buffer'
-require 'new_relic/telemetry_sdk/span'
-
 module NewRelic
   module TelemetrySdk
     class BufferTest < Minitest::Test

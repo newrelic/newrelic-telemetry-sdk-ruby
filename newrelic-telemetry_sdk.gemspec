@@ -1,6 +1,6 @@
 lib = File.expand_path("lib", __dir__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require "new_relic/telemetry_sdk/version"
+require "newrelic/telemetry_sdk/version"
 
 Gem::Specification.new do |spec|
   spec.name          = "newrelic-telemetry_sdk"

@@ -51,7 +51,7 @@ end
 span = NewRelic::TelemetrySdk::Span.new
 sleep 1
 span.finish
-client = NewRelic::TelemetrySdk::SpanClient.new
+client = NewRelic::TelemetrySdk::TraceClient.new
 client.report span
 ```
 

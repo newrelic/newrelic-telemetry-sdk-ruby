@@ -3,10 +3,6 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-telemetry-sdk-ruby/blob/main/LICENSE for complete details.
 
-require 'new_relic/telemetry_sdk/buffer'
-require 'new_relic/telemetry_sdk/logger'
-require 'new_relic/telemetry_sdk/exception'
-
 module NewRelic
   module TelemetrySdk
     # This class is a parent class for clients used to send data to the New Relic data

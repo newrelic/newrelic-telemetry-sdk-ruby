@@ -21,16 +21,17 @@ module NewRelic
   end
 end
 
-require 'new_relic/telemetry_sdk/version'
-require 'new_relic/telemetry_sdk/util'
+require 'newrelic/telemetry_sdk/version'
+require 'newrelic/telemetry_sdk/util'
+require 'newrelic/telemetry_sdk/exception'
 
-require 'new_relic/telemetry_sdk/config'
-require 'new_relic/telemetry_sdk/configurator'
-require 'new_relic/telemetry_sdk/logger'
+require 'newrelic/telemetry_sdk/config'
+require 'newrelic/telemetry_sdk/configurator'
+require 'newrelic/telemetry_sdk/logger'
 
-require 'new_relic/telemetry_sdk/span'
-require 'new_relic/telemetry_sdk/harvester'
-require 'new_relic/telemetry_sdk/buffer'
+require 'newrelic/telemetry_sdk/span'
+require 'newrelic/telemetry_sdk/harvester'
+require 'newrelic/telemetry_sdk/buffer'
 
-require 'new_relic/telemetry_sdk/clients/client'
-require 'new_relic/telemetry_sdk/clients/span_client'
+require 'newrelic/telemetry_sdk/clients/client'
+require 'newrelic/telemetry_sdk/clients/trace_client'

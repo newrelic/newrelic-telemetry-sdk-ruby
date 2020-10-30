@@ -2,8 +2,6 @@ require 'net/http'
 require 'bundler'
 Bundler.require
 
-require "new_relic/telemetry_sdk"
-
 unless ENV["API_KEY"]
   raise "No API Key supplied.  Export API_KEY environment variable!" 
 end
@@ -17,11 +15,11 @@ end
 def setup_buffer_harvesting common_attributes = {host: 'fake_host'}
   configure_sdk
   @harvester = NewRelic::TelemetrySdk::Harvester.new 
-  @span_client = NewRelic::TelemetrySdk::SpanClient.new
+  @trace_client = NewRelic::TelemetrySdk::TraceClient.new
   # Creates a buffer with common attributes that will be added to all spans in the buffer
   @buffer = NewRelic::TelemetrySdk::Buffer.new common_attributes
   # Register the buffer with a name and the associated client
-  @harvester.register 'external_spans', @buffer, @span_client
+  @harvester.register 'external_spans', @buffer, @trace_client
   # Begins the harvester running in the background
   @harvester.start
 end

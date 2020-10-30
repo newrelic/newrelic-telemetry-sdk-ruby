@@ -1,0 +1,46 @@
+name: Release
+
+on: 
+  push: 
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+  
+    - name: update rubygems
+      run: gem update --system
+
+    - name: Install onetimepass
+      run: pip install onetimepass
+
+    - name: Configure gem credentials
+      run: |
+        echo "GEM_HOST_API_KEY=${{ secrets.RUBYGEMS_API_KEY }}" >> $GITHUB_ENV
+        echo "RUBYGEMS_MFA_KEY=${{ secrets.RUBYGEMS_MFA_KEY }}" >> $GITHUB_ENV
+
+    - name: Build newrelic-telemetry_sdk gem
+      run: gem build newrelic-telemetry_sdk.gemspec
+
+    - name: Determine version
+      run: echo "VERSION=$(ls newrelic-telemetry_sdk-*.gem | ruby -pe 'sub(/newrelic-telemetry_sdk\-(.*).gem/, "\\1")')" >> $GITHUB_ENV
+    
+    - name: Tag new version
+      run: |
+        if [ $(git tag -l ${{ env.VERSION }}) ]; then
+          echo "Tag already created for this version"
+        else
+          git tag ${{ env.VERSION }}
+          git push origin ${{ env.VERSION }}
+        fi
+
+    - name: Obtain OTP to publish newrelic-telemetry_sdk to rubygems.org
+      run: echo "RUBYGEMS_OTP=$(python ./.github/workflows/scripts/rubygems-authenticate.py RUBYGEMS_MFA_KEY)"  >> $GITHUB_ENV
+
+    - name: Publish newrelic-telemetry_sdk to rubygems.org
+      run: ruby ./.github/workflows/scripts/rubygems-publish.rb newrelic-telemetry_sdk

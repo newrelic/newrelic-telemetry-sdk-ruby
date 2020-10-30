@@ -66,17 +66,17 @@ module NewRelic
         NewRelic::TelemetrySdk.configure do |config|
           config.api_insert_key = "AN_ORDINARY_KEY"
         end
-        span_client = NewRelic::TelemetrySdk::SpanClient.new
-        assert_equal "AN_ORDINARY_KEY", span_client.send(:api_insert_key)
+        trace_client = NewRelic::TelemetrySdk::TraceClient.new
+        assert_equal "AN_ORDINARY_KEY", trace_client.send(:api_insert_key)
       end
 
       def test_configure_trace_api_host
         NewRelic::TelemetrySdk.configure do |config|
           config.trace_api_host = "localhost"
         end
-        NewRelic::TelemetrySdk::SpanClient.any_instance.expects(:set_up_connection).with("localhost")
+        NewRelic::TelemetrySdk::TraceClient.any_instance.expects(:set_up_connection).with("localhost")
         # causes `set_up_connection` to be invoked
-        NewRelic::TelemetrySdk::SpanClient.new
+        NewRelic::TelemetrySdk::TraceClient.new
       end
 
       def test_configure_audit_logging_enabled
@@ -84,8 +84,8 @@ module NewRelic
           config.audit_logging_enabled = true
         end
 
-        span_client = NewRelic::TelemetrySdk::SpanClient.new
-        assert span_client.send(:audit_logging_enabled?)
+        trace_client = NewRelic::TelemetrySdk::TraceClient.new
+        assert trace_client.send(:audit_logging_enabled?)
       end
     end
   end

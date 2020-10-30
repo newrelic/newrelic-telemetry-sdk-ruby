@@ -4,8 +4,6 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'../..','test_helper'))
 
-require 'new_relic/telemetry_sdk/harvester'
-
 module NewRelic
   module TelemetrySdk
     class HarvesterTest < Minitest::Test
